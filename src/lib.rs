@@ -142,4 +142,18 @@ mod test{
             let gas = parse_str(test.1, test.2).unwrap();
             assert_eq!(test_data, gas)
     }
+    #[test]
+    fn parse_test6(){
+        let test = TEST[5];
+            let test_data = test.0;
+            let gas = parse_str(test.1, test.2).unwrap();
+            assert_eq!(test_data, gas)
+    }
+    #[test]
+    fn parse_test7(){
+        let test = TEST[6];
+            let test_data = test.0;
+            let gas = parse_str(test.1, test.2).unwrap();
+            assert_eq!(test_data, gas)
+    }
 }
