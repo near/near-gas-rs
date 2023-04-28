@@ -1,5 +1,3 @@
-
-
 const ONE_TERA_GAS: u64 = 10u64.pow(12);
 const ONE_GIGA_GAS: u64 = 10u64.pow(9);
 const GAS: u64 = 1;
@@ -23,8 +21,6 @@ impl std::str::FromStr for NearGas {
         Ok(gas)
     }
 }
-
-
 
 impl NearGas {
     pub fn from_tgas(mut inner: u64) -> Self {
@@ -93,7 +89,6 @@ pub fn parse_str(s: &str, pref_const: u64)-> Result<u64, String>{
     Ok(result)
 }
 
-
 #[cfg(test)]
 mod test{
     use super::*;
@@ -108,52 +103,11 @@ mod test{
     ];
     #[test]
     fn parse_test1(){
-        let test = TEST[0];
+        for test in TEST{
             let test_data = test.0;
             let gas = parse_str(test.1, test.2).unwrap();
             assert_eq!(test_data, gas)
+        }
+   
     }
-    #[test]
-    fn parse_test2(){
-        let test = TEST[1];
-            let test_data = test.0;
-            let gas = parse_str(test.1, test.2).unwrap();
-            assert_eq!(test_data, gas)
-    }
-
-    #[test]
-    fn parse_test3(){
-        let test = TEST[2];
-            let test_data = test.0;
-            let gas = parse_str(test.1, test.2).unwrap();
-            assert_eq!(test_data, gas)
-    }
-    #[test]
-    fn parse_test4(){
-        let test = TEST[3];
-            let test_data = test.0;
-            let gas = parse_str(test.1, test.2).unwrap();
-            assert_eq!(test_data, gas)
-    }
-    #[test]
-    fn parse_test5(){
-        let test = TEST[4];
-            let test_data = test.0;
-            let gas = parse_str(test.1, test.2).unwrap();
-            assert_eq!(test_data, gas)
-    }
-    #[test]
-    fn parse_test6(){
-        let test = TEST[5];
-            let test_data = test.0;
-            let gas = parse_str(test.1, test.2).unwrap();
-            assert_eq!(test_data, gas)
-    }
-    #[test]
-    fn parse_test7(){
-        let test = TEST[6];
-            let test_data = test.0;
-            let gas = parse_str(test.1, test.2).unwrap();
-            assert_eq!(test_data, gas)
-    }
-}
+}   
