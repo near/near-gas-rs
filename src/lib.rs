@@ -14,7 +14,7 @@ impl std::str::FromStr for NearGas {
         let number = match currency.as_str() {
             "T" | "TGAS" | "TERAGAS" => parse_str(num, ONE_TERA_GAS)?,
             "GIGAGAS" | "GGAS" => parse_str(num, ONE_GIGA_GAS)?,
-            _ => return Err(NearGasParsingError::IncorectCurrency(currency.to_owned())),
+            _ => return Err(NearGasParsingError::IncorectCurrency(s.to_owned())),
         };
         let gas = NearGas::from_gas(number);
         Ok(gas)
@@ -53,10 +53,10 @@ pub fn parse_str(s: &str, pref_const: u64) -> Result<u64, NearGasParsingError> {
     let (int, fract) = if let Some((whole, fractional)) = s.trim().split_once('.') {
         let int: u64 = whole
             .parse()
-            .map_err(|_| NearGasParsingError::InvalidNumber(whole.to_owned()))?;
+            .map_err(|_| NearGasParsingError::InvalidNumber(s.to_owned()))?;
         let mut fract: u64 = fractional
             .parse()
-            .map_err(|_| NearGasParsingError::InvalidNumber(fractional.to_owned()))?;
+            .map_err(|_| NearGasParsingError::InvalidNumber(s.to_owned()))?;
         let len = fractional.len() as u32;
         fract = fract
             .checked_mul(
@@ -108,11 +108,56 @@ mod test {
             assert_eq!(test_data, gas)
         }
     }
+    const TEST_DATA: [ &'static str; 6] = [
+        "1.1.1 TeraGas",
+        "1. 0 TeraGas",
+        "0.5 TGas",
+        "0 pas",
+        "0",
+        "-1 TeraGas",
+    ];
+
+    use std::str::FromStr;
+
+    #[test]
+    fn doubledot(){
+        let data = TEST_DATA[0];
+        let gas: Result<NearGas, NearGasParsingError> = FromStr::from_str(data);
+        assert_eq!(gas, Err(NearGasParsingError::InvalidNumber("1.1.1".to_owned())))
+    }
+
+    #[test]
+    fn space_after_dot(){
+        let data = TEST_DATA[1];
+        let gas: Result<NearGas, NearGasParsingError> = FromStr::from_str(data);
+        assert_eq!(gas, Err(NearGasParsingError::InvalidNumber("1. 0".to_owned())))
+    }
+
+    #[test]
+    fn decimal_tgas(){
+        let data = TEST_DATA[2];
+        let gas: Result<NearGas, NearGasParsingError> = FromStr::from_str(data);
+        assert_eq!(gas, Ok(NearGas::from_ggas(500)))
+    }
+
+    #[test]
+    fn incorect_currency(){
+        let data = TEST_DATA[3];
+        let gas: Result<NearGas, NearGasParsingError> = FromStr::from_str(data);
+        assert_eq!(gas, Err(NearGasParsingError::IncorectCurrency(data.to_owned())))
+    }
+
+    #[test]
+    fn invalid_whole() {
+        let data = TEST_DATA[5];
+        let gas: Result<NearGas, NearGasParsingError> = FromStr::from_str(data);
+        assert_eq!(gas, Err(NearGasParsingError::InvalidNumber("-1".to_owned())))
+    }
+
     #[test]
     fn parse_errortest() {
         let test_data = "hnim";
         let gas = parse_str(test_data, ONE_GIGA_GAS);
-        println!("{:?}", gas);
         assert_eq!(
             gas,
             Err(NearGasParsingError::InvalidNumber("hnim".to_string()))
