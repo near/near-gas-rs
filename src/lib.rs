@@ -60,7 +60,8 @@ pub fn parse_str(s: &str, pref_const: u64) -> Result<u64, NearGasParsingError> {
         let mut fract: u64 = fractional
             .parse()
             .map_err(|_| NearGasParsingError::InvalidNumber(s.to_owned()))?;
-        let len = fractional.len() as u32;
+        let len = u32::try_from(fractional.len())
+            .map_err(|_| NearGasParsingError::InvalidNumber(fractional.to_owned()))?;
         fract = fract
             .checked_mul(
                 pref_const
