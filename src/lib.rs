@@ -9,8 +9,8 @@ pub struct NearGas {
 impl std::str::FromStr for NearGas {
     type Err = NearGasParsingError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let bindin = s.trim().to_uppercase();
-        let (num, currency) = bindin.split_at(
+        let upcase = s.trim().to_uppercase();
+        let (num, currency) = upcase.split_at(
             s.find(char::is_alphabetic)
                 .ok_or(NearGasParsingError::IncorectCurrency(s.to_owned()))?,
         );
