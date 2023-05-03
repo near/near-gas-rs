@@ -160,6 +160,16 @@ mod test {
     }
 
     #[test]
+    fn without_currency() {
+        let data = TEST_DATA[4];
+        let gas: Result<NearGas, NearGasParsingError> = FromStr::from_str(data);
+        assert_eq!(
+            gas,
+            Err(NearGasParsingError::IncorectCurrency("0".to_owned()))
+        )
+    }
+
+    #[test]
     fn invalid_whole() {
         let data = TEST_DATA[5];
         let gas: Result<NearGas, NearGasParsingError> = FromStr::from_str(data);
