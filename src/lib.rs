@@ -93,6 +93,8 @@ pub enum NearGasParsingError {
     IncorectCurrency(String),
 }
 
+
+
 #[cfg(test)]
 mod test {
     use super::*;
