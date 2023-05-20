@@ -1,52 +1,47 @@
-/// NearGas
+/// A `NearGas` type to represent value of Gas.
 ///
-/// A `NearGas` type represents a amount Gas.
-///
-/// `NearGas` is composed of a `u64` whole numbers of Gas. 
+/// Each `NearGas` is composed whol number of Gas.
+/// `NearGas` is implement common trait `FromStr`. Also have utils function to parse from `str` in to `u64`.
 /// 
-/// You can convert decimail number into `NearGas` only from `&str` type.
-///
-/// # Basic usege:
+/// # Examples
 /// ```
 /// use near_token::*;
-/// use core::str::FromStr;
-///
-/// let data = "123.4566 teragas";
-/// let gas: NearGas = FromStr::from_str(data).unwrap();
-/// assert_eq!(gas.as_gas(), 123456600000000u64);
+/// 
+/// let one_tera_gas = NearGas::from_gas(10u64.pow(12));
+/// assert_eq!(one_tera_gas, NearGas::from_tgas(1u64));
+/// assert_eq!(one_tera_gas, NearGas::from_ggas(1000u64));
 /// ```
-///
-///
-///
 
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct NearGas {
     inner: u64,
 }
+mod utils;
+pub use utils::*;
 
-use self::utils::parse_str;
-/// Tera gas constant is equal to 10^12 gas.
-/// 
-/// # Example 
+/// The `u64` constant of one tera Gas(10^12).
+///
+/// # Examples
 /// ```
 /// use near_token::*;
+/// 
 /// let teragas: u64 =  2;
 /// let gas: u64 = teragas * ONE_TERA_GAS;
 /// assert_eq!(gas, 2_0000_0000_0000u64);
 /// ```
 pub const ONE_TERA_GAS: u64 = 10u64.pow(12);
 
-/// Giga gas constant is equal to 10^6 gas.
-/// 
-/// # Example
+/// The `u64`constsnt of one giga Gas(10^9).
+///
+/// # Examples
 /// ```
 /// use near_token::*;
+/// 
 /// let gigagas = 2;
 /// let gas = gigagas * ONE_GIGA_GAS;
 /// assert_eq!(gas, 2_000_000_000u64);
 /// ```
 pub const ONE_GIGA_GAS: u64 = 10u64.pow(9);
-
 
 impl std::str::FromStr for NearGas {
     type Err = NearGasError;
@@ -54,12 +49,14 @@ impl std::str::FromStr for NearGas {
         let upcase = s.trim().to_ascii_uppercase();
         let (num, currency) = upcase.split_at(
             s.find(|c: char| c.is_ascii_alphabetic())
-                .ok_or_else(|| NearGasError::IncorectCurrency(s.to_owned()))?,
+                .ok_or_else(|| NearGasError::IncorrectCurrency(s.to_owned()))?,
         );
         let number = match currency {
-            "TGAS" | "TERAGAS" => parse_str(num.trim(), ONE_TERA_GAS).map_err(|error| NearGasError::ParcingError(error))?,
-            "GIGAGAS" | "GGAS" => parse_str(num.trim(), ONE_GIGA_GAS).map_err(|error| NearGasError::ParcingError(error))?,
-            _ => return Err(NearGasError::IncorectCurrency(s.to_owned())),
+            "TGAS" | "TERAGAS" => parse_decimal_number(num.trim(), ONE_TERA_GAS)
+                .map_err(|error| NearGasError::IncorrectNumber(error))?,
+            "GIGAGAS" | "GGAS" => parse_decimal_number(num.trim(), ONE_GIGA_GAS)
+                .map_err(|error| NearGasError::IncorrectNumber(error))?,
+            _ => return Err(NearGasError::IncorrectCurrency(s.to_owned())),
         };
         let gas = NearGas::from_gas(number);
         Ok(gas)
@@ -67,85 +64,96 @@ impl std::str::FromStr for NearGas {
 }
 
 impl NearGas {
+    /// Creates a new `NearGas` from the specified number of whole tera Gas.
+    /// 
+    /// # Examples
+    /// ```
+    /// use near_token::*;
+    /// 
+    /// let tera_gas = NearGas::from_tgas(5);
+    /// 
+    /// assert_eq!(tera_gas.as_gas(), 5 * ONE_TERA_GAS);
+    /// ```    
     pub fn from_tgas(mut inner: u64) -> Self {
         inner *= ONE_TERA_GAS;
         Self { inner }
     }
 
+    /// Creates a new `NearGas` from the specified number of whole giga Gas.
+    /// 
+    /// # Examples
+    /// ```
+    /// use near_token::*;
+    /// 
+    /// let giga_gas = NearGas::from_ggas(5);
+    /// 
+    /// assert_eq!(giga_gas.as_gas(), 5 * ONE_GIGA_GAS);
+    /// ```    
     pub fn from_ggas(mut inner: u64) -> Self {
         inner *= ONE_GIGA_GAS;
         Self { inner }
     }
 
+    /// Creates a new `NearGas` from the specified number of whole Gas.
+    /// 
+    /// # Examples
+    /// ```
+    /// use near_token::*;
+    /// 
+    /// let gas = NearGas::from_gas(5 * ONE_TERA_GAS);
+    /// 
+    /// assert_eq!(gas.as_tgas(), 5);
+    /// ```    
     pub fn from_gas(inner: u64) -> Self {
         Self { inner }
     }
 
+    /// Returns the total number of whole Gas contained by this `NearGas`.
+    /// 
+    /// # Examples
+    /// ```
+    /// use near_token::*;
+    /// let neargas = NearGas::from_gas(12345);
+    /// assert_eq!(neargas.as_gas(), 12345);
+    /// ```
     pub fn as_gas(self) -> u64 {
         self.inner
     }
 
+    /// Returns the total number of whole part of giga Gas contained by this `NearGas`.
+    /// 
+    /// # Examples
+    /// ```
+    /// use near_token::*;
+    /// let neargas = NearGas::from_gas(1 * ONE_GIGA_GAS);
+    /// assert_eq!(neargas.as_ggas(), 1);
+    /// ```
     pub fn as_ggas(self) -> u64 {
         self.inner / ONE_GIGA_GAS
     }
 
+    /// Returns the total number of whole part of tera Gas contained by this `NearGas`.
+    /// 
+    /// # Examples
+    /// ```
+    /// use near_token::*;
+    /// let neargas = NearGas::from_gas(1 * ONE_TERA_GAS);
+    /// assert_eq!(neargas.as_tgas(), 1);
+    /// ```
     pub fn as_tgas(self) -> u64 {
         self.inner / ONE_TERA_GAS
     }
 }
 
-pub mod utils {
-
-    pub fn parse_str(s: &str, pref_const: u64) -> Result<u64, NearGasParsingError> {
-        let (int, fract) = if let Some((whole, fractional)) = s.trim().split_once('.') {
-            let int: u64 = whole
-                .parse()
-                .map_err(|_| NearGasParsingError::InvalidNumber(s.to_owned()))?;
-            let mut fract: u64 = fractional
-                .parse()
-                .map_err(|_| NearGasParsingError::InvalidNumber(s.to_owned()))?;
-            let len = u32::try_from(fractional.len())
-                .map_err(|_| NearGasParsingError::InvalidNumber(s.to_owned()))?;
-            fract = fract
-                .checked_mul(
-                    pref_const
-                        .checked_div(10u64.pow(len))
-                        .ok_or_else(|| NearGasParsingError::LongFractional(fract.to_owned()))?,
-                )
-                .ok_or_else(|| NearGasParsingError::LongFractional(fract.to_owned()))?;
-            (int, fract)
-        } else {
-            let int: u64 = s
-                .parse()
-                .map_err(|_| NearGasParsingError::InvalidNumber(s.to_owned()))?;
-            (int, 0)
-        };
-        let result = fract
-            .checked_add(
-                int.checked_mul(pref_const)
-                    .ok_or_else(|| NearGasParsingError::LongWhole(int.to_owned()))?,
-            )
-            .ok_or_else(|| NearGasParsingError::LongWhole(int.to_owned()))?;
-        Ok(result)
-    }
-
-    #[derive(Debug, Clone, PartialEq, Eq)]
-    pub enum NearGasParsingError {
-        InvalidNumber(String),
-        LongWhole(u64),
-        LongFractional(u64),
-    }
-}
-
-    #[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum NearGasError {
-    ParcingError(utils::NearGasParsingError),
-    IncorectCurrency(String),
+    IncorrectNumber(utils::DecimalNumberParsingError),
+    IncorrectCurrency(String),
 }
 
 #[cfg(test)]
 mod test {
-    use super::utils::NearGasParsingError;
+    use super::utils::DecimalNumberParsingError;
     use super::*;
     const TEST: [(u64, &'static str, u64); 6] = [
         (129380_000_001u64, "129.380000001", ONE_GIGA_GAS),
@@ -159,7 +167,7 @@ mod test {
     fn parse_test() {
         for test in TEST {
             let test_data = test.0;
-            let gas = parse_str(test.1, test.2).unwrap();
+            let gas = parse_decimal_number(test.1, test.2).unwrap();
             assert_eq!(test_data, gas)
         }
     }
@@ -180,7 +188,9 @@ mod test {
         let gas: Result<NearGas, NearGasError> = FromStr::from_str(data);
         assert_eq!(
             gas,
-            Err(NearGasError::ParcingError(NearGasParsingError::InvalidNumber("1.1.1".to_owned())))
+            Err(NearGasError::IncorrectNumber(
+                DecimalNumberParsingError::InvalidNumber("1.1.1".to_owned())
+            ))
         )
     }
 
@@ -190,7 +200,9 @@ mod test {
         let gas: Result<NearGas, NearGasError> = FromStr::from_str(data);
         assert_eq!(
             gas,
-            Err(NearGasError::ParcingError(NearGasParsingError::InvalidNumber("1. 0".to_owned())))
+            Err(NearGasError::IncorrectNumber(
+                DecimalNumberParsingError::InvalidNumber("1. 0".to_owned())
+            ))
         )
     }
 
@@ -205,20 +217,14 @@ mod test {
     fn incorect_currency() {
         let data = TEST_DATA[3];
         let gas: Result<NearGas, NearGasError> = FromStr::from_str(data);
-        assert_eq!(
-            gas,
-            Err(NearGasError::IncorectCurrency(data.to_owned()))
-        )
+        assert_eq!(gas, Err(NearGasError::IncorrectCurrency(data.to_owned())))
     }
 
     #[test]
     fn without_currency() {
         let data = TEST_DATA[4];
         let gas: Result<NearGas, NearGasError> = FromStr::from_str(data);
-        assert_eq!(
-            gas,
-            Err(NearGasError::IncorectCurrency("0".to_owned()))
-        )
+        assert_eq!(gas, Err(NearGasError::IncorrectCurrency("0".to_owned())))
     }
 
     #[test]
@@ -227,23 +233,25 @@ mod test {
         let gas: Result<NearGas, NearGasError> = FromStr::from_str(data);
         assert_eq!(
             gas,
-            Err(NearGasError::ParcingError(NearGasParsingError::InvalidNumber("-1".to_owned())))
+            Err(NearGasError::IncorrectNumber(
+                DecimalNumberParsingError::InvalidNumber("-1".to_owned())
+            ))
         )
     }
 
     #[test]
     fn parse_errortest() {
         let test_data = "hnim";
-        let gas = parse_str(test_data, ONE_GIGA_GAS);
+        let gas = parse_decimal_number(test_data, ONE_GIGA_GAS);
         assert_eq!(
             gas,
-            Err(NearGasParsingError::InvalidNumber("hnim".to_string()))
+            Err(DecimalNumberParsingError::InvalidNumber("hnim".to_string()))
         )
     }
     #[test]
     fn parse_u64_errortest() {
         let test_data = u64::MAX.to_string();
-        let gas = parse_str(&test_data, ONE_GIGA_GAS);
-        assert_eq!(gas, Err(NearGasParsingError::LongWhole(u64::MAX)));
+        let gas = parse_decimal_number(&test_data, ONE_GIGA_GAS);
+        assert_eq!(gas, Err(DecimalNumberParsingError::LongWhole(u64::MAX)));
     }
 }
