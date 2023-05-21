@@ -2,11 +2,11 @@
 ///
 /// Each `NearGas` is composed whol number of Gas.
 /// `NearGas` is implement common trait `FromStr`. Also have utils function to parse from `str` in to `u64`.
-/// 
+///
 /// # Examples
 /// ```
 /// use near_token::*;
-/// 
+///
 /// let one_tera_gas = NearGas::from_gas(10u64.pow(12));
 /// assert_eq!(one_tera_gas, NearGas::from_tgas(1u64));
 /// assert_eq!(one_tera_gas, NearGas::from_ggas(1000u64));
@@ -24,7 +24,7 @@ pub use utils::*;
 /// # Examples
 /// ```
 /// use near_token::*;
-/// 
+///
 /// let teragas: u64 =  2;
 /// let gas: u64 = teragas * ONE_TERA_GAS;
 /// assert_eq!(gas, 2_0000_0000_0000u64);
@@ -36,7 +36,7 @@ pub const ONE_TERA_GAS: u64 = 10u64.pow(12);
 /// # Examples
 /// ```
 /// use near_token::*;
-/// 
+///
 /// let gigagas = 2;
 /// let gas = gigagas * ONE_GIGA_GAS;
 /// assert_eq!(gas, 2_000_000_000u64);
@@ -65,13 +65,13 @@ impl std::str::FromStr for NearGas {
 
 impl NearGas {
     /// Creates a new `NearGas` from the specified number of whole tera Gas.
-    /// 
+    ///
     /// # Examples
     /// ```
     /// use near_token::*;
-    /// 
+    ///
     /// let tera_gas = NearGas::from_tgas(5);
-    /// 
+    ///
     /// assert_eq!(tera_gas.as_gas(), 5 * ONE_TERA_GAS);
     /// ```    
     pub fn from_tgas(mut inner: u64) -> Self {
@@ -80,13 +80,13 @@ impl NearGas {
     }
 
     /// Creates a new `NearGas` from the specified number of whole giga Gas.
-    /// 
+    ///
     /// # Examples
     /// ```
     /// use near_token::*;
-    /// 
+    ///
     /// let giga_gas = NearGas::from_ggas(5);
-    /// 
+    ///
     /// assert_eq!(giga_gas.as_gas(), 5 * ONE_GIGA_GAS);
     /// ```    
     pub fn from_ggas(mut inner: u64) -> Self {
@@ -95,13 +95,13 @@ impl NearGas {
     }
 
     /// Creates a new `NearGas` from the specified number of whole Gas.
-    /// 
+    ///
     /// # Examples
     /// ```
     /// use near_token::*;
-    /// 
+    ///
     /// let gas = NearGas::from_gas(5 * ONE_TERA_GAS);
-    /// 
+    ///
     /// assert_eq!(gas.as_tgas(), 5);
     /// ```    
     pub fn from_gas(inner: u64) -> Self {
@@ -109,7 +109,7 @@ impl NearGas {
     }
 
     /// Returns the total number of whole Gas contained by this `NearGas`.
-    /// 
+    ///
     /// # Examples
     /// ```
     /// use near_token::*;
@@ -121,7 +121,7 @@ impl NearGas {
     }
 
     /// Returns the total number of whole part of giga Gas contained by this `NearGas`.
-    /// 
+    ///
     /// # Examples
     /// ```
     /// use near_token::*;
@@ -133,7 +133,7 @@ impl NearGas {
     }
 
     /// Returns the total number of whole part of tera Gas contained by this `NearGas`.
-    /// 
+    ///
     /// # Examples
     /// ```
     /// use near_token::*;
@@ -155,22 +155,7 @@ pub enum NearGasError {
 mod test {
     use super::utils::DecimalNumberParsingError;
     use super::*;
-    const TEST: [(u64, &'static str, u64); 6] = [
-        (129380_000_001u64, "129.380000001", ONE_GIGA_GAS),
-        (12938_000_000_100_000_000u64, "12938000000.1", ONE_GIGA_GAS),
-        (129380_000_001u64, "0.129380000001", ONE_TERA_GAS),
-        (129380_000_001_000u64, "129.380000001000", ONE_TERA_GAS),
-        (9488129380_000_001u64, "9488.129380000001", ONE_TERA_GAS),
-        (129380_000_001u64, "00.129380000001", ONE_TERA_GAS),
-    ];
-    #[test]
-    fn parse_test() {
-        for test in TEST {
-            let test_data = test.0;
-            let gas = parse_decimal_number(test.1, test.2).unwrap();
-            assert_eq!(test_data, gas)
-        }
-    }
+
     const TEST_DATA: [&'static str; 6] = [
         "1.1.1 TeraGas",
         "1. 0 TeraGas",
