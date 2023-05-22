@@ -1,12 +1,12 @@
-/// Parsing decimal number from `&str` type in `u64`.
-/// Function also takes value of metric prefix in u64 type.
-/// `parse_str` use `u64` type, and have same max and min values.
+/// Parsing decimal numbers from `&str` type in `u64`.
+/// Function also takes a value of metric prefix in u64 type.
+/// `parse_str` use the `u64` type, and have the same max and min values.
 ///
-/// If fractional part is longer than number of zero in prefix, it will return error `DecimalNumberParsingError::LongFractional`.
+/// If the fractional part is longer than several zeros in the prefix, it will return the error `DecimalNumberParsingError::LongFractional`.
 ///
-/// If string slise have invalid chars, it will return error `DecimalNumberParsingError::InvalidNumber`.
+/// If the string slice has invalid chars, it will return the error `DecimalNumberParsingError::InvalidNumber`.
 ///
-/// If whole part of number have value more than `u64` maximum value, it will return error `DecimalNumberParsingError::LongWhole`.
+/// If the whole part of the number has a value more than the `u64` maximum value, it will return the error `DecimalNumberParsingError::LongWhole`.
 ///  
 /// # Examples
 /// ```
@@ -17,6 +17,7 @@
 /// assert_eq!(parse_decimal_number(number, prefix).unwrap(), 265790u64);
 /// ```
 pub fn parse_decimal_number(s: &str, pref_const: u64) -> Result<u64, DecimalNumberParsingError> {
+    //mast be chenged also in near_balanse!!!
     let (int, fract) = if let Some((whole, fractional)) = s.trim().split_once('.') {
         let int: u64 = whole
             .parse()
@@ -29,11 +30,15 @@ pub fn parse_decimal_number(s: &str, pref_const: u64) -> Result<u64, DecimalNumb
         fract = fract
             .checked_mul(
                 pref_const
-                    .checked_div(10u64.pow(len))
-                    .filter(not_null)
-                    .ok_or_else(|| DecimalNumberParsingError::LongFractional(fract.to_owned()))?,
+                    .checked_div(10u64.checked_pow(len).ok_or_else(|| {
+                        DecimalNumberParsingError::LongFractional(fractional.to_owned())
+                    })?)
+                    .filter(|n| n != &0u64)
+                    .ok_or_else(|| {
+                        DecimalNumberParsingError::LongFractional(fractional.to_owned())
+                    })?,
             )
-            .ok_or_else(|| DecimalNumberParsingError::LongFractional(fract.to_owned()))?;
+            .ok_or_else(|| DecimalNumberParsingError::LongFractional(fractional.to_owned()))?;
         (int, fract)
     } else {
         let int: u64 = s
@@ -44,23 +49,18 @@ pub fn parse_decimal_number(s: &str, pref_const: u64) -> Result<u64, DecimalNumb
     let result = fract
         .checked_add(
             int.checked_mul(pref_const)
-                .ok_or_else(|| DecimalNumberParsingError::LongWhole(int.to_owned()))?,
+                .ok_or_else(|| DecimalNumberParsingError::LongWhole(int.to_string().to_owned()))?,
         )
-        .ok_or_else(|| DecimalNumberParsingError::LongWhole(int.to_owned()))?;
+        .ok_or_else(|| DecimalNumberParsingError::LongWhole(int.to_string().to_owned()))?;
     Ok(result)
-}
-
-fn not_null(n: &u64) -> bool {
-    n != &0u64
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum DecimalNumberParsingError {
     InvalidNumber(String),
-    LongWhole(u64),
-    LongFractional(u64),
+    LongWhole(String),
+    LongFractional(String),
 }
-//mast be chenged also in near_balanse!!!
 
 #[cfg(test)]
 mod tests {
@@ -91,7 +91,7 @@ mod tests {
         let prefix = 10000u64;
         assert_eq!(
             parse_decimal_number(data, prefix),
-            Err(DecimalNumberParsingError::LongFractional(23456))
+            Err(DecimalNumberParsingError::LongFractional(23456.to_string()))
         );
     }
 
@@ -125,7 +125,9 @@ mod tests {
         let prefix = 10u64.pow(17);
         assert_eq!(
             parse_decimal_number(data.as_str(), prefix),
-            Err(DecimalNumberParsingError::LongFractional(max_data))
+            Err(DecimalNumberParsingError::LongFractional(
+                max_data.to_string()
+            ))
         );
     }
 
@@ -136,7 +138,28 @@ mod tests {
         let s = data.to_string() + "." + "1";
         assert_eq!(
             parse_decimal_number(s.as_str(), prefix),
-            Err(DecimalNumberParsingError::LongWhole(data))
+            Err(DecimalNumberParsingError::LongWhole(data.to_string()))
+        );
+    }
+
+    #[test]
+    fn parse_u64_errortest() {
+        let test_data = u64::MAX.to_string();
+        let gas = parse_decimal_number(&test_data, ONE_GIGA_GAS);
+        assert_eq!(
+            gas,
+            Err(DecimalNumberParsingError::LongWhole(u64::MAX.to_string()))
+        );
+    }
+
+    #[test]
+    fn test() {
+        let data = "1.000000000000000000000000000000000000001";
+        let prefix = 100u64;
+        println!("{:?}", parse_decimal_number(data, prefix));
+        assert_eq!(
+            parse_decimal_number(data, prefix),
+            Err(DecimalNumberParsingError::LongFractional("000000000000000000000000000000000000001".to_string()))
         );
     }
 }
