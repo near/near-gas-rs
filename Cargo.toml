@@ -1,5 +1,5 @@
 [package]
-name = "near_token"
+name = "near_gas"
 version = "0.1.0"
 edition = "2021"
 
