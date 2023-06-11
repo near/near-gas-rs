@@ -10,9 +10,12 @@ fn main() {
   
   let near_gas = NearGas::from_str(data);
   
-  println!("{:?}", near_gas)
+  let gas = near_gas.from_gas();
+  println!("{:?}", gas)
 }
 ```
+
+
 
 ### License
 
