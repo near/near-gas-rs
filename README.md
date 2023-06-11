@@ -4,10 +4,10 @@
 
 ## License
 
-This project is licensed under the [MIT license].
+This project is licensed under the [MIT license] and [Apache-2.0 license].
 
 [MIT license]: https://github.com/Mr0melian/near_gas/blob/master/LICENSE-MIT
-[Apache-2.0]:  https://github.com/Mr0melian/near_gas/blob/master/LICENSE-APACHE
+[Apache-2.0 license]:  https://github.com/Mr0melian/near_gas/blob/master/LICENSE-APACHE
 
 ### Contribution
 
