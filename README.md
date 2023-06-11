@@ -1,6 +1,6 @@
 # near_gas
 Near_gas is crate for work with gas data in near-protocol 
-## near_gas examles 
+## near_gas examples 
 ```rust
 use near-gas::{NearGas};
 
