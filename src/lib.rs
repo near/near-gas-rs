@@ -5,7 +5,7 @@
 //!
 //! # Examples
 //! ```
-//! use near_token::*;
+//! use near_gas::*;
 //!
 //! let one_tera_gas = NearGas::from_gas(10u64.pow(12));
 //! assert_eq!(one_tera_gas, NearGas::from_tgas(1u64));
@@ -23,7 +23,7 @@ pub use utils::*;
 ///
 /// # Examples
 /// ```
-/// use near_token::*;
+/// use near_gas::*;
 ///
 /// let teragas: u64 =  2;
 /// let gas: u64 = teragas * ONE_TERA_GAS;
@@ -35,7 +35,7 @@ pub const ONE_TERA_GAS: u64 = 10u64.pow(12);
 ///
 /// # Examples
 /// ```
-/// use near_token::*;
+/// use near_gas::*;
 ///
 /// let gigagas = 2;
 /// let gas = gigagas * ONE_GIGA_GAS;
@@ -68,7 +68,7 @@ impl NearGas {
     ///
     /// # Examples
     /// ```
-    /// use near_token::*;
+    /// use near_gas::*;
     ///
     /// let tera_gas = NearGas::from_tgas(5);
     ///
@@ -83,7 +83,7 @@ impl NearGas {
     ///
     /// # Examples
     /// ```
-    /// use near_token::*;
+    /// use near_gas::*;
     ///
     /// let giga_gas = NearGas::from_ggas(5);
     ///
@@ -98,7 +98,7 @@ impl NearGas {
     ///
     /// # Examples
     /// ```
-    /// use near_token::*;
+    /// use near_gas::*;
     ///
     /// let gas = NearGas::from_gas(5 * ONE_TERA_GAS);
     ///
@@ -112,7 +112,7 @@ impl NearGas {
     ///
     /// # Examples
     /// ```
-    /// use near_token::*;
+    /// use near_gas::*;
     /// let neargas = NearGas::from_gas(12345);
     /// assert_eq!(neargas.as_gas(), 12345);
     /// ```
@@ -124,7 +124,7 @@ impl NearGas {
     ///
     /// # Examples
     /// ```
-    /// use near_token::*;
+    /// use near_gas::*;
     /// let neargas = NearGas::from_gas(1 * ONE_GIGA_GAS);
     /// assert_eq!(neargas.as_ggas(), 1);
     /// ```
@@ -136,7 +136,7 @@ impl NearGas {
     ///
     /// # Examples
     /// ```
-    /// use near_token::*;
+    /// use near_gas::*;
     /// let neargas = NearGas::from_gas(1 * ONE_TERA_GAS);
     /// assert_eq!(neargas.as_tgas(), 1);
     /// ```

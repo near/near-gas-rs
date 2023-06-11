@@ -10,7 +10,7 @@
 ///  
 /// # Examples
 /// ```
-/// use near_token::*;
+/// use near_gas::*;
 ///
 /// let number = "2.65790";
 /// let prefix = 100000u64;
