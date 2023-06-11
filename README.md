@@ -11,7 +11,7 @@ fn main() {
   let near_gas = NearGas::from_str(data);
   
   let gas = near_gas.as_gas();
-  println!("{:?}", gas)
+  println!("{}", gas)
 }
 ```
 
