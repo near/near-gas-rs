@@ -2,7 +2,7 @@
 near_gas is crate for work with gas data in near-protocol 
 ## near-gas examples 
 ```rust
-use near-gas::{NearGas};
+use near_gas::{NearGas};
 
 fn main() {
     
