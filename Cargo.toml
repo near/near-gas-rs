@@ -9,5 +9,6 @@ categories = ["nearprotocol, blockchain, neargas"]
 license = "MIT OR Apache-2.0"
 include = ["lib.rs", "utils.rs", "README.md", "LICENSE-APACHE", "LICENSE-MIT"]
 description = "near-gas is crate for work with gas data in near-protocol."
+documentation = "https://docs.rs/near-gas"
 
 [dependencies]
