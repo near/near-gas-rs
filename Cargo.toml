@@ -1,6 +1,6 @@
 [package]
 name = "near-gas"
-version = "0.1.2"
+version = "0.1.3"
 edition = "2021"
 authors = ["Serhieiev Ivan <serhieievivan6@gmail.com>"]
 repository = "https://github.com/Mr0melian/near-gas"
