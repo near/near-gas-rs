@@ -14,6 +14,9 @@ fn main() {
   println!("{}", gas)
 }
 ```
+## NearGas information
+On every transaction you send to the network NEAR charges you a fee (aka gas fee). This fee is used to indirectly pay the people that keep the network infrastructure, and to incentivize developers of smart contracts. [For more information]: https://docs.near.org/concepts/basics/transactions/gas
+[Gas usege in Near]: https://nomicon.io/RuntimeSpec/Fees/ 
 
 
 
