@@ -1,6 +1,7 @@
 # near-gas
 near-gas is crate for work with gas data in near-protocol.
-Crate includ NearGas type and constructors for convert data as NearGas and as u64 type number.
+
+The crate includes NearGas type and constructors for converting data as NearGas and as u64 type values.
 
 ## near-gas examples 
 ```rust
