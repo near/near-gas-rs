@@ -2,7 +2,7 @@
 name = "near-gas"
 version = "0.1.0"
 edition = "2021"
-author = ["Serhieiev Ivan <serhieievivan6@gmail.com>"]
+authors = ["Serhieiev Ivan <serhieievivan6@gmail.com>"]
 repository = "https://github.com/Mr0melian/near-gas"
 rust-version = "1.68.2"
 categories = ["nearprotocol, blockchain, neargas"]

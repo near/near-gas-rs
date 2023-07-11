@@ -49,9 +49,9 @@ pub fn parse_decimal_number(s: &str, pref_const: u64) -> Result<u64, DecimalNumb
     let result = fract
         .checked_add(
             int.checked_mul(pref_const)
-                .ok_or_else(|| DecimalNumberParsingError::LongWhole(int.to_string().to_owned()))?,
+                .ok_or_else(|| DecimalNumberParsingError::LongWhole(int.to_string()))?,
         )
-        .ok_or_else(|| DecimalNumberParsingError::LongWhole(int.to_string().to_owned()))?;
+        .ok_or_else(|| DecimalNumberParsingError::LongWhole(int.to_string()))?;
     Ok(result)
 }
 
@@ -159,7 +159,9 @@ mod tests {
         println!("{:?}", parse_decimal_number(data, prefix));
         assert_eq!(
             parse_decimal_number(data, prefix),
-            Err(DecimalNumberParsingError::LongFractional("000000000000000000000000000000000000001".to_string()))
+            Err(DecimalNumberParsingError::LongFractional(
+                "000000000000000000000000000000000000001".to_string()
+            ))
         );
     }
 }
