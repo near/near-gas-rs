@@ -1,5 +1,7 @@
 # near-gas
-near_gas is crate for work with gas data in near-protocol 
+near-gas is crate for work with gas data in near-protocol.
+Crate includ NearGas type and constructors for convert data as NearGas and as u64 type number.
+
 ## near-gas examples 
 ```rust
 use near_gas::{NearGas};
@@ -11,7 +13,10 @@ fn main() {
   let near_gas = NearGas::from_str(data);
   
   let gas = near_gas.as_gas();
-  println!("{}", gas)
+  assert_eq!(gas, 12657000000000);
+
+  let giga_gas = near_gas.as_ggas();
+  assert_eq!(giga_gas, 12657);
 }
 ```
 ## NearGas information
