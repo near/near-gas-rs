@@ -19,29 +19,8 @@ pub struct NearGas {
 mod utils;
 pub use utils::*;
 
-/// The `u64` constant of one tera Gas(10^12).
-///
-/// # Examples
-/// ```
-/// use near_gas::*;
-///
-/// let teragas: u64 =  2;
-/// let gas: u64 = teragas * ONE_TERA_GAS;
-/// assert_eq!(gas, 2_0000_0000_0000u64);
-/// ```
-pub const ONE_TERA_GAS: u64 = 10u64.pow(12);
-
-/// The `u64`constsnt of one giga Gas(10^9).
-///
-/// # Examples
-/// ```
-/// use near_gas::*;
-///
-/// let gigagas = 2;
-/// let gas = gigagas * ONE_GIGA_GAS;
-/// assert_eq!(gas, 2_000_000_000u64);
-/// ```
-pub const ONE_GIGA_GAS: u64 = 10u64.pow(9);
+const ONE_TERA_GAS: u64 = 10u64.pow(12);
+const ONE_GIGA_GAS: u64 = 10u64.pow(9);
 
 impl std::str::FromStr for NearGas {
     type Err = NearGasError;
@@ -62,6 +41,8 @@ impl std::str::FromStr for NearGas {
         Ok(gas)
     }
 }
+
+use std::u64;
 
 impl NearGas {
     /// Creates a new `NearGas` from the specified number of whole tera Gas.
@@ -143,6 +124,38 @@ impl NearGas {
     pub fn as_tgas(self) -> u64 {
         self.inner / ONE_TERA_GAS
     }
+
+    pub fn checked_sum(&self, rhs: NearGas) -> Result<NearGas, ()> {
+        if u64::MAX - self.inner >= rhs.inner {
+            return Ok(NearGas::from_gas(self.inner + rhs.inner));
+        }
+        return Err(());
+    }
+
+    pub fn checked_sub(&self, rhs: NearGas) -> Result<NearGas, ()> {
+        if self.inner >= rhs.inner {
+            return Ok(NearGas::from_gas(self.inner - rhs.inner));
+        }
+        return Err(());
+    }
+
+    pub fn checked_mul(&self, rhs: u64) -> Result<NearGas, ()>{
+        if rhs == 0 {
+            return Ok(NearGas::from_gas(0));
+        }
+        if self.inner <= u64::MAX / rhs {
+            return Ok(NearGas::from_gas(self.inner * rhs));
+        }
+        return Err(());
+    }
+
+    pub fn checked_div(&self, rhs: u64)-> Result<NearGas, ()>{
+        if self.inner >= rhs && rhs !=0 {
+            return Ok(NearGas::from_gas(self.inner / rhs));
+        }
+        Err(())
+    }
+
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -213,4 +226,42 @@ mod test {
             ))
         )
     }
+
+    use std::u64;
+
+    #[test]
+    fn sum_gas() {
+        let gas: NearGas = NearGas::from_gas(u64::MAX - 2);
+        let two_gas: NearGas = NearGas::from_gas(2);
+        let any_gas: NearGas = NearGas::from_gas(5);
+        let answer = gas.checked_sum(two_gas);
+        assert_eq!(answer, Ok(NearGas::from_gas(u64::MAX)));
+        let answer = gas.checked_sum(any_gas);
+        assert_eq!(answer, Err(()));
+    }
+
+    #[test]
+    fn sub_gas(){
+        let gas = NearGas::from_gas(2);
+        let one_gas: NearGas = NearGas::from_gas(1);
+        let any_gas: NearGas = NearGas::from_gas(5);
+        assert_eq!(gas.checked_sub(one_gas), Ok(NearGas::from_gas(1)));
+        assert_eq!(gas.checked_sub(any_gas), Err(()) );
+    }
+
+    #[test]
+    fn mul_gas(){
+        let gas = NearGas::from_gas(u64::MAX / 10);
+        assert_eq!(gas.checked_mul(10), Ok(NearGas::from_gas(u64::MAX / 10 * 10)));
+        assert_eq!(gas.checked_mul(11), Err(()));
+        assert_eq!(gas.checked_mul(0), Ok(NearGas::from_gas(0)));
+    }
+
+    #[test]
+    fn div_gas(){
+        let gas = NearGas::from_gas(10);
+        assert_eq!(gas.checked_div(2), Ok(NearGas::from_gas(5)));
+        assert_eq!(gas.checked_div(0), Err(()));
+    }
+    
 }
