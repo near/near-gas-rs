@@ -17,8 +17,8 @@ pub struct NearGas {
     inner: u64,
 }
 mod utils;
-pub use utils::*;
 use std::u64;
+pub use utils::*;
 
 const ONE_TERA_GAS: u64 = 10u64.pow(12);
 const ONE_GIGA_GAS: u64 = 10u64.pow(9);
@@ -125,7 +125,7 @@ impl NearGas {
     }
 
     /// Checked integer addition. Computes self + rhs, returning None if overflow occurred.
-    /// 
+    ///
     /// # Examples
     /// ```
     /// use near_gas::*;
@@ -138,43 +138,43 @@ impl NearGas {
     }
 
     /// Checked integer subtraction. Computes self - rhs, returning None if overflow occurred.
-    /// 
+    ///
     /// # Examples
     /// ```
     /// use near_gas::*;
     /// assert_eq!(NearGas::from_gas(2).checked_sub(NearGas::from_gas(2)), Some(NearGas::from_gas(0)));
     /// assert_eq!(NearGas::from_gas(2).checked_sub(NearGas::from_gas(3)), None);
     /// ```
-    pub fn checked_sub(self, rhs: NearGas) -> Option<Self>{
+    pub fn checked_sub(self, rhs: NearGas) -> Option<Self> {
         self.as_gas().checked_sub(rhs.as_gas()).map(Self::from_gas)
     }
 
     /// Checked integer multiplication. Computes self * rhs, returning None if overflow occurred.
-    /// 
+    ///
     /// # Examples
     /// ```
     /// use near_gas::*;
     /// use std::u64;
     /// assert_eq!(NearGas::from_gas(2).checked_mul(2), Some(NearGas::from_gas(4)));
     /// assert_eq!(NearGas::from_gas(u64::MAX).checked_mul(2), None)
-    pub fn checked_mul(self, rhs: u64) -> Option<Self>{
+    pub fn checked_mul(self, rhs: u64) -> Option<Self> {
         self.as_gas().checked_mul(rhs).map(Self::from_gas)
     }
 
     /// Checked integer division. Computes self / rhs, returning None if rhs == 0.
-    /// 
+    ///
     /// # Examples
     /// ```
     /// use near_gas::*;
     /// assert_eq!(NearGas::from_gas(10).checked_div(2), Some(NearGas::from_gas(5)));
     /// assert_eq!(NearGas::from_gas(2).checked_div(0), None);
     /// ```
-    pub fn checked_div(self, rhs: u64) -> Option<Self>{
+    pub fn checked_div(self, rhs: u64) -> Option<Self> {
         self.as_gas().checked_div(rhs).map(NearGas::from_gas)
     }
 
     /// Saturating integer addition. Computes self + rhs, saturating at the numeric bounds instead of overflowing.
-    /// 
+    ///
     /// # Examples
     /// ```
     /// use near_gas::*;
@@ -182,24 +182,24 @@ impl NearGas {
     /// assert_eq!(NearGas::from_gas(5).saturating_add(NearGas::from_gas(5)), NearGas::from_gas(10));
     /// assert_eq!(NearGas::from_gas(u64::MAX).saturating_add(NearGas::from_gas(1)), NearGas::from_gas(u64::Max));
     /// ```
-    pub fn saturating_add(self, rhs: NearGas) -> NearGas{
+    pub fn saturating_add(self, rhs: NearGas) -> NearGas {
         NearGas::from_gas(self.as_gas().saturating_add(rhs.as_gas()))
     }
 
     /// Saturating integer subtraction. Computes self - rhs, saturating at the numeric bounds instead of overflowing.
-    /// 
+    ///
     /// # Examples
     /// ```
     /// use near_gas::*;
     /// assert_eq!(NearGas::from_gas(5).saturating_sub(NearGas::from_gas(2)), NearGas::from_gas(3));
     /// assert_eq!(NearGas::from_gas(1).saturating_sub(NearGas::from_gas(2)), NearGas::from_gas(0));
     /// ```
-    pub fn saturating_sub(self, rhs: NearGas) -> NearGas{
+    pub fn saturating_sub(self, rhs: NearGas) -> NearGas {
         NearGas::from_gas(self.as_gas().saturating_sub(rhs.as_gas()))
     }
 
     /// Saturating integer multiplication. Computes self * rhs, saturating at the numeric bounds instead of overflowing.
-    /// 
+    ///
     /// # Examples
     /// ```
     /// use near_gas::*;
@@ -207,20 +207,20 @@ impl NearGas {
     /// assert_eq!(NearGas::from_gas(2).saturating_mul(5), NearGas::from_gas(10));
     /// assert_eq!(NearGas::from_gas(u64::MAX).saturating_mul(2), NearGas::from_gas(u64::MAX));
     /// ```
-    pub fn saturating_mul(self, rhs: u64) -> NearGas{
+    pub fn saturating_mul(self, rhs: u64) -> NearGas {
         NearGas::from_gas(self.as_gas().saturating_mul(rhs))
     }
 
     /// Saturating integer division. Computes self / rhs, saturating at the numeric bounds instead of overflowing.
-    /// 
+    ///
     /// # Examples
     /// ```
     /// use near_gas::*;
     /// assert_eq!(NearGas::from_gas(10).saturating_div(2), NearGas::from_gas(5));
     /// assert_eq!(NearGas::from_gas(10).saturating_div(0), NearGas::from_gas(0))
     /// ```
-    pub fn saturating_div(self, rhs: u64) -> NearGas{
-        if rhs == 0{
+    pub fn saturating_div(self, rhs: u64) -> NearGas {
+        if rhs == 0 {
             return NearGas::from_gas(0);
         }
         NearGas::from_gas(self.as_gas().saturating_div(rhs))
@@ -299,16 +299,19 @@ mod test {
     use std::u64;
 
     #[test]
-    fn add_gas(){
+    fn add_gas() {
         let gas = NearGas::from_gas(u64::MAX - 3);
         let any_gas = NearGas::from_gas(3);
         let more_gas = NearGas::from_gas(4);
-        assert_eq!(gas.clone().checked_add(any_gas), Some(NearGas::from_gas(u64::MAX)) );
+        assert_eq!(
+            gas.clone().checked_add(any_gas),
+            Some(NearGas::from_gas(u64::MAX))
+        );
         assert_eq!(gas.checked_add(more_gas), None);
     }
 
     #[test]
-    fn sub_gas(){
+    fn sub_gas() {
         let gas = NearGas::from_gas(3);
         let any_gas = NearGas::from_gas(1);
         let more_gas = NearGas::from_gas(4);
@@ -317,40 +320,52 @@ mod test {
     }
 
     #[test]
-    fn mul_gas(){
+    fn mul_gas() {
         let gas = NearGas::from_gas(u64::MAX / 10);
-        assert_eq!(gas.clone().checked_mul(10), Some(NearGas::from_gas(u64::MAX / 10 * 10)));
+        assert_eq!(
+            gas.clone().checked_mul(10),
+            Some(NearGas::from_gas(u64::MAX / 10 * 10))
+        );
         assert_eq!(gas.checked_mul(11), None);
     }
 
     #[test]
-    fn div_gas(){
+    fn div_gas() {
         let gas = NearGas::from_gas(10);
-        assert_eq!(gas.clone().checked_div(2), Some(NearGas::from_gas(5)) );
+        assert_eq!(gas.clone().checked_div(2), Some(NearGas::from_gas(5)));
         assert_eq!(gas.clone().checked_div(11), Some(NearGas::from_gas(0)));
         assert_eq!(gas.checked_div(0), None);
     }
 
     #[test]
-    fn s_add_gas(){
+    fn s_add_gas() {
         let gas = NearGas::from_gas(100);
         let added_gas = NearGas::from_gas(1);
         let another_gas = NearGas::from_gas(u64::MAX);
-        assert_eq!(gas.saturating_add(added_gas.clone()), NearGas::from_gas(101));
-        assert_eq!(another_gas.saturating_add(added_gas), NearGas::from_gas(u64::MAX));
+        assert_eq!(
+            gas.saturating_add(added_gas.clone()),
+            NearGas::from_gas(101)
+        );
+        assert_eq!(
+            another_gas.saturating_add(added_gas),
+            NearGas::from_gas(u64::MAX)
+        );
     }
-    
+
     #[test]
-    fn s_sub_gas(){
+    fn s_sub_gas() {
         let gas = NearGas::from_gas(100);
         let rhs_gas = NearGas::from_gas(1);
         let another_gas = NearGas::from_gas(u64::MIN);
         assert_eq!(gas.saturating_sub(rhs_gas.clone()), NearGas::from_gas(99));
-        assert_eq!(another_gas.saturating_sub(rhs_gas), NearGas::from_gas(u64::MIN));
+        assert_eq!(
+            another_gas.saturating_sub(rhs_gas),
+            NearGas::from_gas(u64::MIN)
+        );
     }
 
     #[test]
-    fn s_mul_gas(){
+    fn s_mul_gas() {
         let gas = NearGas::from_gas(2);
         let rhs = 10;
         let another_gas = u64::MAX;
@@ -359,7 +374,7 @@ mod test {
     }
 
     #[test]
-    fn s_div_gas(){
+    fn s_div_gas() {
         let gas = NearGas::from_gas(10);
         let rhs = 2;
         let another_gas = 20;
