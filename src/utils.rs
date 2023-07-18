@@ -156,7 +156,6 @@ mod tests {
     fn test() {
         let data = "1.000000000000000000000000000000000000001";
         let prefix = 100u64;
-        println!("{:?}", parse_decimal_number(data, prefix));
         assert_eq!(
             parse_decimal_number(data, prefix),
             Err(DecimalNumberParsingError::LongFractional(
