@@ -142,7 +142,6 @@ impl NearGas {
     /// # Examples
     /// ```
     /// use near_gas::*;
-    /// use std::u64;
     /// assert_eq!(NearGas::from_gas(2).checked_sub(NearGas::from_gas(2)), Some(NearGas::from_gas(0)));
     /// assert_eq!(NearGas::from_gas(2).checked_sub(NearGas::from_gas(3)), None);
     /// ```
@@ -167,7 +166,6 @@ impl NearGas {
     /// # Examples
     /// ```
     /// use near_gas::*;
-    /// use std::u64;
     /// assert_eq!(NearGas::from_gas(10).checked_div(2), Some(NearGas::from_gas(5)));
     /// assert_eq!(NearGas::from_gas(2).checked_div(0), None);
     /// ```
@@ -175,18 +173,56 @@ impl NearGas {
         self.as_gas().checked_div(rhs).map(NearGas::from_gas)
     }
 
+    /// Saturating integer addition. Computes self + rhs, saturating at the numeric bounds instead of overflowing.
+    /// 
+    /// # Examples
+    /// ```
+    /// use near_gas::*;
+    /// use std::u64;
+    /// assert_eq!(NearGas::from_gas(5).saturating_add(NearGas::from_gas(5)), NearGas::from_gas(10));
+    /// assert_eq!(NearGas::from_gas(u64::MAX).saturating_add(NearGas::from_gas(1)), NearGas::from_gas(u64::Max));
+    /// ```
     pub fn saturating_add(self, rhs: NearGas) -> NearGas{
         NearGas::from_gas(self.as_gas().saturating_add(rhs.as_gas()))
     }
 
+    /// Saturating integer subtraction. Computes self - rhs, saturating at the numeric bounds instead of overflowing.
+    /// 
+    /// # Examples
+    /// ```
+    /// use near_gas::*;
+    /// assert_eq!(NearGas::from_gas(5).saturating_sub(NearGas::from_gas(2)), NearGas::from_gas(3));
+    /// assert_eq!(NearGas::from_gas(1).saturating_sub(NearGas::from_gas(2)), NearGas::from_gas(0));
+    /// ```
     pub fn saturating_sub(self, rhs: NearGas) -> NearGas{
         NearGas::from_gas(self.as_gas().saturating_sub(rhs.as_gas()))
     }
 
+    /// Saturating integer multiplication. Computes self * rhs, saturating at the numeric bounds instead of overflowing.
+    /// 
+    /// # Examples
+    /// ```
+    /// use near_gas::*;
+    /// use std::u64;
+    /// assert_eq!(NearGas::from_gas(2).saturating_mul(5), NearGas::from_gas(10));
+    /// assert_eq!(NearGas::from_gas(u64::MAX).saturating_mul(2), NearGas::from_gas(u64::MAX));
+    /// ```
     pub fn saturating_mul(self, rhs: u64) -> NearGas{
         NearGas::from_gas(self.as_gas().saturating_mul(rhs))
     }
+
+    /// Saturating integer division. Computes self / rhs, saturating at the numeric bounds instead of overflowing.
+    /// 
+    /// # Examples
+    /// ```
+    /// use near_gas::*;
+    /// assert_eq!(NearGas::from_gas(10).saturating_div(2), NearGas::from_gas(5));
+    /// assert_eq!(NearGas::from_gas(10).saturating_div(0), NearGas::from_gas(0))
+    /// ```
     pub fn saturating_div(self, rhs: u64) -> NearGas{
+        if rhs == 0{
+            return NearGas::from_gas(0);
+        }
         NearGas::from_gas(self.as_gas().saturating_div(rhs))
     }
 }
