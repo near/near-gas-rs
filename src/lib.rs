@@ -11,8 +11,24 @@
 //! assert_eq!(one_tera_gas, NearGas::from_tgas(1u64));
 //! assert_eq!(one_tera_gas, NearGas::from_ggas(1000u64));
 //! ```
+use borsh::{BorshDeserialize, BorshSchema, BorshSerialize};
+use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 
-#[derive(Debug, Clone, Default, PartialEq, Eq)]
+#[derive(
+    Default,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    PartialOrd,
+    Ord,
+    Eq,
+    BorshSerialize,
+    BorshDeserialize,
+    Hash,
+    BorshSchema,
+)]
+#[repr(transparent)]
 pub struct NearGas {
     inner: u64,
 }
@@ -20,8 +36,8 @@ mod utils;
 use std::u64;
 pub use utils::*;
 
-const ONE_TERA_GAS: u64 = 10u64.pow(12);
-const ONE_GIGA_GAS: u64 = 10u64.pow(9);
+pub const ONE_TERA_GAS: u64 = 10u64.pow(12);
+pub const ONE_GIGA_GAS: u64 = 10u64.pow(9);
 
 impl std::str::FromStr for NearGas {
     type Err = NearGasError;
@@ -178,9 +194,8 @@ impl NearGas {
     /// # Examples
     /// ```
     /// use near_gas::*;
-    /// use std::u64;
     /// assert_eq!(NearGas::from_gas(5).saturating_add(NearGas::from_gas(5)), NearGas::from_gas(10));
-    /// assert_eq!(NearGas::from_gas(u64::MAX).saturating_add(NearGas::from_gas(1)), NearGas::from_gas(u64::Max));
+    /// assert_eq!(NearGas::from_gas(u64::MAX).saturating_add(NearGas::from_gas(1)), NearGas::from_gas(u64::MAX));
     /// ```
     pub fn saturating_add(self, rhs: NearGas) -> NearGas {
         NearGas::from_gas(self.as_gas().saturating_add(rhs.as_gas()))
@@ -227,6 +242,81 @@ impl NearGas {
     }
 }
 
+/// Aborts the current contract execution without a custom message.
+/// To include a message, use [`panic_str`].
+pub fn abort() -> ! {
+    // Use wasm32 unreachable call to avoid including the `panic` external function in Wasm.
+    #[cfg(target_arch = "wasm32")]
+    //* This was stabilized recently (~ >1.51), so ignore warnings but don't enforce higher msrv
+    #[allow(unused_unsafe)]
+    unsafe {
+        core::arch::wasm32::unreachable()
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    unsafe {
+        // near_sys::panic()
+        panic!("Aborted")
+    }
+}
+impl Serialize for NearGas {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut buf = [0u8; 20];
+        let remainder = {
+            use std::io::Write;
+
+            let mut w: &mut [u8] = &mut buf;
+            write!(w, "{}", self.inner).unwrap_or_else(|_| abort());
+            w.len()
+        };
+        let len = buf.len() - remainder;
+
+        let s = std::str::from_utf8(&buf[..len]).unwrap_or_else(|_| abort());
+        serializer.serialize_str(s)
+    }
+}
+
+impl<'de> Deserialize<'de> for NearGas {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let s: String = Deserialize::deserialize(deserializer)?;
+        s.parse::<u64>()
+            .map(NearGas::from_gas)
+            .map_err(|err| de::Error::custom(err.to_string()))
+    }
+}
+
+#[cfg(feature = "abi")]
+impl schemars::JsonSchema for Gas {
+    fn is_referenceable() -> bool {
+        false
+    }
+
+    fn schema_name() -> String {
+        String::schema_name()
+    }
+
+    fn json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
+        String::json_schema(gen)
+    }
+}
+
+impl From<u64> for NearGas {
+    fn from(amount: u64) -> Self {
+        NearGas::from_gas(amount)
+    }
+}
+
+impl From<NearGas> for u64 {
+    fn from(gas: NearGas) -> Self {
+        gas.as_gas()
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum NearGasError {
     IncorrectNumber(utils::DecimalNumberParsingError),
@@ -238,6 +328,21 @@ mod test {
     use super::utils::DecimalNumberParsingError;
     use super::*;
     use std::str::FromStr;
+
+    fn test_json_ser(val: u64) {
+        let gas = NearGas::from_gas(val);
+        let ser = serde_json::to_string(&gas).unwrap();
+        assert_eq!(ser, format!("\"{}\"", val));
+        let de: NearGas = serde_json::from_str(&ser).unwrap();
+        assert_eq!(de.as_gas(), val);
+    }
+
+    #[test]
+    fn json_ser() {
+        test_json_ser(u64::MAX);
+        test_json_ser(8);
+        test_json_ser(0);
+    }
 
     #[test]
     fn doubledot() {
