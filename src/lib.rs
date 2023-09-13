@@ -11,22 +11,15 @@
 //! assert_eq!(one_tera_gas, NearGas::from_tgas(1u64));
 //! assert_eq!(one_tera_gas, NearGas::from_ggas(1000u64));
 //! ```
+#[cfg(feature = "near-borsh")]
 use borsh::{BorshDeserialize, BorshSchema, BorshSerialize};
+#[cfg(feature = "near-serde")]
 use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 
-#[derive(
-    Default,
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    PartialOrd,
-    Ord,
-    Eq,
-    BorshSerialize,
-    BorshDeserialize,
-    Hash,
-    BorshSchema,
+#[derive(Default, Debug, Clone, Copy, PartialEq, PartialOrd, Ord, Eq, Hash)]
+#[cfg_attr(
+    feature = "near-borsh",
+    derive(BorshDeserialize, BorshSerialize, BorshSchema)
 )]
 #[repr(transparent)]
 pub struct NearGas {
@@ -242,42 +235,31 @@ impl NearGas {
     }
 }
 
-/// Aborts the current contract execution without a custom message.
-/// To include a message, use [`panic_str`].
-pub fn abort() -> ! {
-    // Use wasm32 unreachable call to avoid including the `panic` external function in Wasm.
-    #[cfg(target_arch = "wasm32")]
-    //* This was stabilized recently (~ >1.51), so ignore warnings but don't enforce higher msrv
-    #[allow(unused_unsafe)]
-    unsafe {
-        core::arch::wasm32::unreachable()
-    }
-    #[cfg(not(target_arch = "wasm32"))]
-    unsafe {
-        // near_sys::panic()
-        panic!("Aborted")
-    }
-}
+#[cfg(feature = "near-serde")]
 impl Serialize for NearGas {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
+        use serde::ser::Error;
         let mut buf = [0u8; 20];
         let remainder = {
             use std::io::Write;
-
             let mut w: &mut [u8] = &mut buf;
-            write!(w, "{}", self.inner).unwrap_or_else(|_| abort());
+            write!(w, "{}", self.inner).map_err(|err| {
+                Error::custom(format!("Failed to serialize: {}", err.to_string()))
+            })?;
             w.len()
         };
         let len = buf.len() - remainder;
 
-        let s = std::str::from_utf8(&buf[..len]).unwrap_or_else(|_| abort());
+        let s = std::str::from_utf8(&buf[..len])
+            .map_err(|err| Error::custom(format!("Failed to serialize: {}", err.to_string())))?;
         serializer.serialize_str(s)
     }
 }
 
+#[cfg(feature = "near-serde")]
 impl<'de> Deserialize<'de> for NearGas {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -291,7 +273,7 @@ impl<'de> Deserialize<'de> for NearGas {
 }
 
 #[cfg(feature = "abi")]
-impl schemars::JsonSchema for Gas {
+impl schemars::JsonSchema for NearGas {
     fn is_referenceable() -> bool {
         false
     }
@@ -302,18 +284,6 @@ impl schemars::JsonSchema for Gas {
 
     fn json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
         String::json_schema(gen)
-    }
-}
-
-impl From<u64> for NearGas {
-    fn from(amount: u64) -> Self {
-        NearGas::from_gas(amount)
-    }
-}
-
-impl From<NearGas> for u64 {
-    fn from(gas: NearGas) -> Self {
-        gas.as_gas()
     }
 }
 
@@ -329,16 +299,17 @@ mod test {
     use super::*;
     use std::str::FromStr;
 
-    fn test_json_ser(val: u64) {
-        let gas = NearGas::from_gas(val);
-        let ser = serde_json::to_string(&gas).unwrap();
-        assert_eq!(ser, format!("\"{}\"", val));
-        let de: NearGas = serde_json::from_str(&ser).unwrap();
-        assert_eq!(de.as_gas(), val);
-    }
-
     #[test]
+    #[cfg(feature = "near-serde")]
     fn json_ser() {
+        fn test_json_ser(val: u64) {
+            let gas = NearGas::from_gas(val);
+            let ser = serde_json::to_string(&gas).unwrap();
+            assert_eq!(ser, format!("\"{}\"", val));
+            let de: NearGas = serde_json::from_str(&ser).unwrap();
+            assert_eq!(de.as_gas(), val);
+        }
+
         test_json_ser(u64::MAX);
         test_json_ser(8);
         test_json_ser(0);

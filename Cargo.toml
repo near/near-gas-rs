@@ -11,10 +11,14 @@ include = ["lib.rs", "utils.rs", "README.md", "LICENSE-APACHE", "LICENSE-MIT"]
 description = "near-gas is crate for work with gas data in near-protocol."
 
 [dependencies]
-serde = { version = "1", features = ["derive"] }
-borsh = { version = "0.10.3", features = ["const-generics"] }
+serde = { version = "1", features = ["derive"], optional = true }
+borsh = { version = "0.10.3", features = ["const-generics"], optional = true }
 schemars = { version = "0.8.8", optional = true }
-near-sys = { version = "0.2" }
 
 [dev-dependencies]
 serde_json = { version = "1" }
+
+[features]
+near-borsh = ["borsh"]
+near-serde = ["serde"]
+abi = ["schemars"]
