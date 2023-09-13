@@ -17,8 +17,3 @@ schemars = { version = "0.8.8", optional = true }
 
 [dev-dependencies]
 serde_json = { version = "1" }
-
-[features]
-near-borsh = ["borsh"]
-near-serde = ["serde"]
-abi = ["schemars"]

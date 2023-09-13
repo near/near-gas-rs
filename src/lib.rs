@@ -11,14 +11,25 @@
 //! assert_eq!(one_tera_gas, NearGas::from_tgas(1u64));
 //! assert_eq!(one_tera_gas, NearGas::from_ggas(1000u64));
 //! ```
-#[cfg(feature = "near-borsh")]
+//!
+//! # Crate features
+//!
+//! * **borsh** -
+//!   When enabled allows `NearGas` to serialized and deserialized by `borsh`.
+//!
+//! * **serde** -
+//!  Implements `serde::Serialize` and `serde::Deserialize` for `NearGas`.
+//!
+//! * **schemars** -
+//!  Implements `schemars::JsonSchema` for `NearGas`.
+#[cfg(feature = "borsh")]
 use borsh::{BorshDeserialize, BorshSchema, BorshSerialize};
-#[cfg(feature = "near-serde")]
+#[cfg(feature = "serde")]
 use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 
 #[derive(Default, Debug, Clone, Copy, PartialEq, PartialOrd, Ord, Eq, Hash)]
 #[cfg_attr(
-    feature = "near-borsh",
+    feature = "borsh",
     derive(BorshDeserialize, BorshSerialize, BorshSchema)
 )]
 #[repr(transparent)]
@@ -61,7 +72,7 @@ impl NearGas {
     ///
     /// let tera_gas = NearGas::from_tgas(5);
     ///
-    /// assert_eq!(tera_gas.as_gas(), 5 * NearGas::from_tgas(1).as_gas());
+    /// assert_eq!(tera_gas.as_gas(), 5 * 1_000_000_000_000);
     /// ```    
     pub const fn from_tgas(mut inner: u64) -> Self {
         inner *= ONE_TERA_GAS;
@@ -76,7 +87,7 @@ impl NearGas {
     ///
     /// let giga_gas = NearGas::from_ggas(5);
     ///
-    /// assert_eq!(giga_gas.as_gas(), 5 * NearGas::from_ggas(1).as_gas());
+    /// assert_eq!(giga_gas.as_gas(), 5 * 1_000_000_000);
     /// ```    
     pub const fn from_ggas(mut inner: u64) -> Self {
         inner *= ONE_GIGA_GAS;
@@ -89,7 +100,7 @@ impl NearGas {
     /// ```
     /// use near_gas::NearGas;
     ///
-    /// let gas = NearGas::from_gas(5 * NearGas::from_tgas(1).as_gas());
+    /// let gas = NearGas::from_gas(5 * 1_000_000_000_000);
     ///
     /// assert_eq!(gas.as_tgas(), 5);
     /// ```    
@@ -114,7 +125,7 @@ impl NearGas {
     /// # Examples
     /// ```
     /// use near_gas::NearGas;
-    /// let neargas = NearGas::from_gas(1 * NearGas::from_ggas(1).as_gas());
+    /// let neargas = NearGas::from_gas(1 * 1_000_000_000);
     /// assert_eq!(neargas.as_ggas(), 1);
     /// ```
     pub const fn as_ggas(self) -> u64 {
@@ -126,7 +137,7 @@ impl NearGas {
     /// # Examples
     /// ```
     /// use near_gas::NearGas;
-    /// let neargas = NearGas::from_gas(1 * NearGas::from_tgas(1).as_gas());
+    /// let neargas = NearGas::from_gas(1 * 1_000_000_000_000);
     /// assert_eq!(neargas.as_tgas(), 1);
     /// ```
     pub const fn as_tgas(self) -> u64 {
@@ -235,7 +246,7 @@ impl NearGas {
     }
 }
 
-#[cfg(feature = "near-serde")]
+#[cfg(feature = "serde")]
 impl Serialize for NearGas {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -259,7 +270,7 @@ impl Serialize for NearGas {
     }
 }
 
-#[cfg(feature = "near-serde")]
+#[cfg(feature = "serde")]
 impl<'de> Deserialize<'de> for NearGas {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -272,7 +283,7 @@ impl<'de> Deserialize<'de> for NearGas {
     }
 }
 
-#[cfg(feature = "abi")]
+#[cfg(feature = "schemars")]
 impl schemars::JsonSchema for NearGas {
     fn is_referenceable() -> bool {
         false
@@ -300,7 +311,7 @@ mod test {
     use std::str::FromStr;
 
     #[test]
-    #[cfg(feature = "near-serde")]
+    #[cfg(feature = "serde")]
     fn json_ser() {
         fn test_json_ser(val: u64) {
             let gas = NearGas::from_gas(val);
@@ -313,6 +324,23 @@ mod test {
         test_json_ser(u64::MAX);
         test_json_ser(8);
         test_json_ser(0);
+    }
+
+    #[test]
+    #[cfg(feature = "serde")]
+    fn borsh() {
+        fn test_borsh_ser(val: u64) {
+            use borsh::to_vec;
+            let gas = NearGas::from_gas(val);
+            let ser = to_vec(&gas).unwrap();
+            // assert_eq!(ser, format!("\"{}\"", val));
+            let de: NearGas = NearGas::try_from_slice(&ser).unwrap();
+            assert_eq!(de.as_gas(), val);
+        }
+
+        test_borsh_ser(u64::MAX);
+        test_borsh_ser(8);
+        test_borsh_ser(0);
     }
 
     #[test]
