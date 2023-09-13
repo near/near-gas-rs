@@ -29,8 +29,8 @@ mod utils;
 use std::u64;
 pub use utils::*;
 
-pub const ONE_TERA_GAS: u64 = 10u64.pow(12);
-pub const ONE_GIGA_GAS: u64 = 10u64.pow(9);
+const ONE_TERA_GAS: u64 = 10u64.pow(12);
+const ONE_GIGA_GAS: u64 = 10u64.pow(9);
 
 impl std::str::FromStr for NearGas {
     type Err = NearGasError;
@@ -57,11 +57,11 @@ impl NearGas {
     ///
     /// # Examples
     /// ```
-    /// use near_gas::*;
+    /// use near_gas::NearGas;
     ///
     /// let tera_gas = NearGas::from_tgas(5);
     ///
-    /// assert_eq!(tera_gas.as_gas(), 5 * ONE_TERA_GAS);
+    /// assert_eq!(tera_gas.as_gas(), 5 * NearGas::from_tgas(1).as_gas());
     /// ```    
     pub const fn from_tgas(mut inner: u64) -> Self {
         inner *= ONE_TERA_GAS;
@@ -72,11 +72,11 @@ impl NearGas {
     ///
     /// # Examples
     /// ```
-    /// use near_gas::*;
+    /// use near_gas::NearGas;
     ///
     /// let giga_gas = NearGas::from_ggas(5);
     ///
-    /// assert_eq!(giga_gas.as_gas(), 5 * ONE_GIGA_GAS);
+    /// assert_eq!(giga_gas.as_gas(), 5 * NearGas::from_ggas(1).as_gas());
     /// ```    
     pub const fn from_ggas(mut inner: u64) -> Self {
         inner *= ONE_GIGA_GAS;
@@ -87,9 +87,9 @@ impl NearGas {
     ///
     /// # Examples
     /// ```
-    /// use near_gas::*;
+    /// use near_gas::NearGas;
     ///
-    /// let gas = NearGas::from_gas(5 * ONE_TERA_GAS);
+    /// let gas = NearGas::from_gas(5 * NearGas::from_tgas(1).as_gas());
     ///
     /// assert_eq!(gas.as_tgas(), 5);
     /// ```    
@@ -101,7 +101,7 @@ impl NearGas {
     ///
     /// # Examples
     /// ```
-    /// use near_gas::*;
+    /// use near_gas::NearGas;
     /// let neargas = NearGas::from_gas(12345);
     /// assert_eq!(neargas.as_gas(), 12345);
     /// ```
@@ -113,8 +113,8 @@ impl NearGas {
     ///
     /// # Examples
     /// ```
-    /// use near_gas::*;
-    /// let neargas = NearGas::from_gas(1 * ONE_GIGA_GAS);
+    /// use near_gas::NearGas;
+    /// let neargas = NearGas::from_gas(1 * NearGas::from_ggas(1).as_gas());
     /// assert_eq!(neargas.as_ggas(), 1);
     /// ```
     pub const fn as_ggas(self) -> u64 {
@@ -125,8 +125,8 @@ impl NearGas {
     ///
     /// # Examples
     /// ```
-    /// use near_gas::*;
-    /// let neargas = NearGas::from_gas(1 * ONE_TERA_GAS);
+    /// use near_gas::NearGas;
+    /// let neargas = NearGas::from_gas(1 * NearGas::from_tgas(1).as_gas());
     /// assert_eq!(neargas.as_tgas(), 1);
     /// ```
     pub const fn as_tgas(self) -> u64 {
@@ -137,7 +137,7 @@ impl NearGas {
     ///
     /// # Examples
     /// ```
-    /// use near_gas::*;
+    /// use near_gas::NearGas;
     /// use std::u64;
     /// assert_eq!(NearGas::from_gas(u64::MAX -2).checked_add(NearGas::from_gas(2)), Some(NearGas::from_gas(u64::MAX)));
     /// assert_eq!(NearGas::from_gas(u64::MAX -2).checked_add(NearGas::from_gas(3)), None);
@@ -150,7 +150,7 @@ impl NearGas {
     ///
     /// # Examples
     /// ```
-    /// use near_gas::*;
+    /// use near_gas::NearGas;
     /// assert_eq!(NearGas::from_gas(2).checked_sub(NearGas::from_gas(2)), Some(NearGas::from_gas(0)));
     /// assert_eq!(NearGas::from_gas(2).checked_sub(NearGas::from_gas(3)), None);
     /// ```
@@ -162,7 +162,7 @@ impl NearGas {
     ///
     /// # Examples
     /// ```
-    /// use near_gas::*;
+    /// use near_gas::NearGas;
     /// use std::u64;
     /// assert_eq!(NearGas::from_gas(2).checked_mul(2), Some(NearGas::from_gas(4)));
     /// assert_eq!(NearGas::from_gas(u64::MAX).checked_mul(2), None)
@@ -174,7 +174,7 @@ impl NearGas {
     ///
     /// # Examples
     /// ```
-    /// use near_gas::*;
+    /// use near_gas::NearGas;
     /// assert_eq!(NearGas::from_gas(10).checked_div(2), Some(NearGas::from_gas(5)));
     /// assert_eq!(NearGas::from_gas(2).checked_div(0), None);
     /// ```
@@ -186,7 +186,7 @@ impl NearGas {
     ///
     /// # Examples
     /// ```
-    /// use near_gas::*;
+    /// use near_gas::NearGas;
     /// assert_eq!(NearGas::from_gas(5).saturating_add(NearGas::from_gas(5)), NearGas::from_gas(10));
     /// assert_eq!(NearGas::from_gas(u64::MAX).saturating_add(NearGas::from_gas(1)), NearGas::from_gas(u64::MAX));
     /// ```
@@ -198,7 +198,7 @@ impl NearGas {
     ///
     /// # Examples
     /// ```
-    /// use near_gas::*;
+    /// use near_gas::NearGas;
     /// assert_eq!(NearGas::from_gas(5).saturating_sub(NearGas::from_gas(2)), NearGas::from_gas(3));
     /// assert_eq!(NearGas::from_gas(1).saturating_sub(NearGas::from_gas(2)), NearGas::from_gas(0));
     /// ```
@@ -210,7 +210,7 @@ impl NearGas {
     ///
     /// # Examples
     /// ```
-    /// use near_gas::*;
+    /// use near_gas::NearGas;
     /// use std::u64;
     /// assert_eq!(NearGas::from_gas(2).saturating_mul(5), NearGas::from_gas(10));
     /// assert_eq!(NearGas::from_gas(u64::MAX).saturating_mul(2), NearGas::from_gas(u64::MAX));
@@ -223,7 +223,7 @@ impl NearGas {
     ///
     /// # Examples
     /// ```
-    /// use near_gas::*;
+    /// use near_gas::NearGas;
     /// assert_eq!(NearGas::from_gas(10).saturating_div(2), NearGas::from_gas(5));
     /// assert_eq!(NearGas::from_gas(10).saturating_div(0), NearGas::from_gas(0))
     /// ```
