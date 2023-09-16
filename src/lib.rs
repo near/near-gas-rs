@@ -11,8 +11,28 @@
 //! assert_eq!(one_tera_gas, NearGas::from_tgas(1u64));
 //! assert_eq!(one_tera_gas, NearGas::from_ggas(1000u64));
 //! ```
+//!
+//! # Crate features
+//!
+//! * **borsh** -
+//!   When enabled allows `NearGas` to serialized and deserialized by `borsh`.
+//!
+//! * **serde** -
+//!  Implements `serde::Serialize` and `serde::Deserialize` for `NearGas`.
+//!
+//! * **schemars** -
+//!  Implements `schemars::JsonSchema` for `NearGas`.
+#[cfg(feature = "borsh")]
+use borsh::{BorshDeserialize, BorshSchema, BorshSerialize};
+#[cfg(feature = "serde")]
+use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 
-#[derive(Debug, Clone, Default, PartialEq, Eq)]
+#[derive(Default, Debug, Clone, Copy, PartialEq, PartialOrd, Ord, Eq, Hash)]
+#[cfg_attr(
+    feature = "borsh",
+    derive(BorshDeserialize, BorshSerialize, BorshSchema)
+)]
+#[repr(transparent)]
 pub struct NearGas {
     inner: u64,
 }
@@ -48,11 +68,11 @@ impl NearGas {
     ///
     /// # Examples
     /// ```
-    /// use near_gas::*;
+    /// use near_gas::NearGas;
     ///
     /// let tera_gas = NearGas::from_tgas(5);
     ///
-    /// assert_eq!(tera_gas.as_gas(), 5 * ONE_TERA_GAS);
+    /// assert_eq!(tera_gas.as_gas(), 5 * 1_000_000_000_000);
     /// ```    
     pub const fn from_tgas(mut inner: u64) -> Self {
         inner *= ONE_TERA_GAS;
@@ -63,11 +83,11 @@ impl NearGas {
     ///
     /// # Examples
     /// ```
-    /// use near_gas::*;
+    /// use near_gas::NearGas;
     ///
     /// let giga_gas = NearGas::from_ggas(5);
     ///
-    /// assert_eq!(giga_gas.as_gas(), 5 * ONE_GIGA_GAS);
+    /// assert_eq!(giga_gas.as_gas(), 5 * 1_000_000_000);
     /// ```    
     pub const fn from_ggas(mut inner: u64) -> Self {
         inner *= ONE_GIGA_GAS;
@@ -78,9 +98,9 @@ impl NearGas {
     ///
     /// # Examples
     /// ```
-    /// use near_gas::*;
+    /// use near_gas::NearGas;
     ///
-    /// let gas = NearGas::from_gas(5 * ONE_TERA_GAS);
+    /// let gas = NearGas::from_gas(5 * 1_000_000_000_000);
     ///
     /// assert_eq!(gas.as_tgas(), 5);
     /// ```    
@@ -92,7 +112,7 @@ impl NearGas {
     ///
     /// # Examples
     /// ```
-    /// use near_gas::*;
+    /// use near_gas::NearGas;
     /// let neargas = NearGas::from_gas(12345);
     /// assert_eq!(neargas.as_gas(), 12345);
     /// ```
@@ -104,8 +124,8 @@ impl NearGas {
     ///
     /// # Examples
     /// ```
-    /// use near_gas::*;
-    /// let neargas = NearGas::from_gas(1 * ONE_GIGA_GAS);
+    /// use near_gas::NearGas;
+    /// let neargas = NearGas::from_gas(1 * 1_000_000_000);
     /// assert_eq!(neargas.as_ggas(), 1);
     /// ```
     pub const fn as_ggas(self) -> u64 {
@@ -116,8 +136,8 @@ impl NearGas {
     ///
     /// # Examples
     /// ```
-    /// use near_gas::*;
-    /// let neargas = NearGas::from_gas(1 * ONE_TERA_GAS);
+    /// use near_gas::NearGas;
+    /// let neargas = NearGas::from_gas(1 * 1_000_000_000_000);
     /// assert_eq!(neargas.as_tgas(), 1);
     /// ```
     pub const fn as_tgas(self) -> u64 {
@@ -128,7 +148,7 @@ impl NearGas {
     ///
     /// # Examples
     /// ```
-    /// use near_gas::*;
+    /// use near_gas::NearGas;
     /// use std::u64;
     /// assert_eq!(NearGas::from_gas(u64::MAX -2).checked_add(NearGas::from_gas(2)), Some(NearGas::from_gas(u64::MAX)));
     /// assert_eq!(NearGas::from_gas(u64::MAX -2).checked_add(NearGas::from_gas(3)), None);
@@ -141,7 +161,7 @@ impl NearGas {
     ///
     /// # Examples
     /// ```
-    /// use near_gas::*;
+    /// use near_gas::NearGas;
     /// assert_eq!(NearGas::from_gas(2).checked_sub(NearGas::from_gas(2)), Some(NearGas::from_gas(0)));
     /// assert_eq!(NearGas::from_gas(2).checked_sub(NearGas::from_gas(3)), None);
     /// ```
@@ -153,7 +173,7 @@ impl NearGas {
     ///
     /// # Examples
     /// ```
-    /// use near_gas::*;
+    /// use near_gas::NearGas;
     /// use std::u64;
     /// assert_eq!(NearGas::from_gas(2).checked_mul(2), Some(NearGas::from_gas(4)));
     /// assert_eq!(NearGas::from_gas(u64::MAX).checked_mul(2), None)
@@ -165,7 +185,7 @@ impl NearGas {
     ///
     /// # Examples
     /// ```
-    /// use near_gas::*;
+    /// use near_gas::NearGas;
     /// assert_eq!(NearGas::from_gas(10).checked_div(2), Some(NearGas::from_gas(5)));
     /// assert_eq!(NearGas::from_gas(2).checked_div(0), None);
     /// ```
@@ -177,10 +197,9 @@ impl NearGas {
     ///
     /// # Examples
     /// ```
-    /// use near_gas::*;
-    /// use std::u64;
+    /// use near_gas::NearGas;
     /// assert_eq!(NearGas::from_gas(5).saturating_add(NearGas::from_gas(5)), NearGas::from_gas(10));
-    /// assert_eq!(NearGas::from_gas(u64::MAX).saturating_add(NearGas::from_gas(1)), NearGas::from_gas(u64::Max));
+    /// assert_eq!(NearGas::from_gas(u64::MAX).saturating_add(NearGas::from_gas(1)), NearGas::from_gas(u64::MAX));
     /// ```
     pub fn saturating_add(self, rhs: NearGas) -> NearGas {
         NearGas::from_gas(self.as_gas().saturating_add(rhs.as_gas()))
@@ -190,7 +209,7 @@ impl NearGas {
     ///
     /// # Examples
     /// ```
-    /// use near_gas::*;
+    /// use near_gas::NearGas;
     /// assert_eq!(NearGas::from_gas(5).saturating_sub(NearGas::from_gas(2)), NearGas::from_gas(3));
     /// assert_eq!(NearGas::from_gas(1).saturating_sub(NearGas::from_gas(2)), NearGas::from_gas(0));
     /// ```
@@ -202,7 +221,7 @@ impl NearGas {
     ///
     /// # Examples
     /// ```
-    /// use near_gas::*;
+    /// use near_gas::NearGas;
     /// use std::u64;
     /// assert_eq!(NearGas::from_gas(2).saturating_mul(5), NearGas::from_gas(10));
     /// assert_eq!(NearGas::from_gas(u64::MAX).saturating_mul(2), NearGas::from_gas(u64::MAX));
@@ -215,7 +234,7 @@ impl NearGas {
     ///
     /// # Examples
     /// ```
-    /// use near_gas::*;
+    /// use near_gas::NearGas;
     /// assert_eq!(NearGas::from_gas(10).saturating_div(2), NearGas::from_gas(5));
     /// assert_eq!(NearGas::from_gas(10).saturating_div(0), NearGas::from_gas(0))
     /// ```
@@ -224,6 +243,58 @@ impl NearGas {
             return NearGas::from_gas(0);
         }
         NearGas::from_gas(self.as_gas().saturating_div(rhs))
+    }
+}
+
+#[cfg(feature = "serde")]
+impl Serialize for NearGas {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        use serde::ser::Error;
+        let mut buf = [0u8; 20];
+        let remainder = {
+            use std::io::Write;
+            let mut w: &mut [u8] = &mut buf;
+            write!(w, "{}", self.inner).map_err(|err| {
+                Error::custom(format!("Failed to serialize: {}", err.to_string()))
+            })?;
+            w.len()
+        };
+        let len = buf.len() - remainder;
+
+        let s = std::str::from_utf8(&buf[..len])
+            .map_err(|err| Error::custom(format!("Failed to serialize: {}", err.to_string())))?;
+        serializer.serialize_str(s)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl<'de> Deserialize<'de> for NearGas {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let s: String = Deserialize::deserialize(deserializer)?;
+        s.parse::<u64>()
+            .map(NearGas::from_gas)
+            .map_err(|err| de::Error::custom(err.to_string()))
+    }
+}
+
+#[cfg(feature = "schemars")]
+impl schemars::JsonSchema for NearGas {
+    fn is_referenceable() -> bool {
+        false
+    }
+
+    fn schema_name() -> String {
+        String::schema_name()
+    }
+
+    fn json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
+        String::json_schema(gen)
     }
 }
 
@@ -238,6 +309,40 @@ mod test {
     use super::utils::DecimalNumberParsingError;
     use super::*;
     use std::str::FromStr;
+
+    #[test]
+    #[cfg(feature = "serde")]
+    fn json_ser() {
+        fn test_json_ser(val: u64) {
+            let gas = NearGas::from_gas(val);
+            let ser = serde_json::to_string(&gas).unwrap();
+            assert_eq!(ser, format!("\"{}\"", val));
+            let de: NearGas = serde_json::from_str(&ser).unwrap();
+            assert_eq!(de.as_gas(), val);
+        }
+
+        test_json_ser(u64::MAX);
+        test_json_ser(8);
+        test_json_ser(0);
+    }
+
+    #[test]
+    #[cfg(feature = "serde")]
+    fn borsh() {
+        fn test_borsh_ser(val: u64, expected_serialized_value: [u8; 8]) {
+            use borsh::to_vec;
+            let gas = NearGas::from_gas(val);
+            let ser = to_vec(&gas).unwrap();
+            // println!("{:?}", ser);
+            assert_eq!(expected_serialized_value, ser.as_slice());
+            let de: NearGas = NearGas::try_from_slice(&ser).unwrap();
+            assert_eq!(de.as_gas(), val);
+        }
+
+        test_borsh_ser(u64::MAX, [255, 255, 255, 255, 255, 255, 255, 255]);
+        test_borsh_ser(8, [8, 0, 0, 0, 0, 0, 0, 0]);
+        test_borsh_ser(0, [0, 0, 0, 0, 0, 0, 0, 0]);
+    }
 
     #[test]
     fn doubledot() {
