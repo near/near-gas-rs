@@ -63,6 +63,25 @@ impl std::str::FromStr for NearGas {
     }
 }
 
+impl std::fmt::Display for NearGas {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self.as_gas() == 0 {
+            return write!(f, "0 Tgas");
+        }
+        let tgas = self.as_tgas();
+        if tgas > 0 {
+            write!(f, "{} Tgas", tgas)
+        } else {
+            let float = self.as_gas() as f64 / ONE_TERA_GAS as f64;
+            if float < 0.001 {
+                return write!(f, "<0.001 Tgas");
+            } else {
+                return write!(f, "{:.1$} Tgas", float, 3);
+            }
+        }
+    }
+}
+
 impl NearGas {
     /// Creates a new `NearGas` from the specified number of whole tera Gas.
     ///
@@ -485,5 +504,14 @@ mod test {
         let another_gas = 20;
         assert_eq!(gas.clone().saturating_div(rhs), NearGas::from_gas(5));
         assert_eq!(gas.saturating_div(another_gas), NearGas::from_gas(0));
+    }
+
+    #[test]
+    fn test_display() {
+        assert_eq!(NearGas::from_tgas(17).to_string(), "17 Tgas");
+        assert_eq!(NearGas::from_ggas(17).to_string(), "0.017 Tgas");
+        assert_eq!(NearGas::from_gas(17).to_string(), "<0.001 Tgas");
+        assert_eq!(NearGas::from_gas(0).to_string(), "0 Tgas");
+        assert_eq!(NearGas::from_gas(1_000_000_000_017).to_string(), "1 Tgas");
     }
 }
