@@ -65,10 +65,9 @@ impl std::str::FromStr for NearGas {
     }
 }
 
-impl std::convert::TryFrom<String> for NearGas {
-    type Error = NearGasError;
-    fn try_from(s: String) -> Result<Self, Self::Error> {
-        NearGas::from_str(&s)
+impl std::convert::From<String> for NearGas {
+    fn from(s: String) -> NearGas {
+        NearGas::from_str(&s).unwrap_or(NearGas::from_gas(0))
     }
 }
 
