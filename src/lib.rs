@@ -38,6 +38,8 @@ pub struct NearGas {
 }
 mod utils;
 use std::u64;
+
+use std::str::FromStr;
 pub use utils::*;
 
 const ONE_TERA_GAS: u64 = 10u64.pow(12);
@@ -60,6 +62,13 @@ impl std::str::FromStr for NearGas {
         };
         let gas = NearGas::from_gas(number);
         Ok(gas)
+    }
+}
+
+impl std::convert::TryFrom<String> for NearGas {
+    type Error = NearGasError;
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        NearGas::from_str(&s)
     }
 }
 
