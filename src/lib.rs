@@ -265,6 +265,11 @@ impl NearGas {
     }
 }
 
+#[cfg(feature = "interactive-clap")]
+impl interactive_clap::ToCli for NearGas {
+    type CliVariant = NearGas;
+}
+
 #[cfg(feature = "serde")]
 impl Serialize for NearGas {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
