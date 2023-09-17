@@ -91,7 +91,7 @@ impl std::fmt::Display for NearGas {
     }
 }
 
-impl std::fmt::Debug for NearGasError {
+impl std::fmt::Display for NearGasError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             NearGasError::IncorrectNumber(err) => write!(f, "Incorrect number: {:?}", err),
@@ -340,7 +340,7 @@ impl schemars::JsonSchema for NearGas {
     }
 }
 
-#[derive(Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum NearGasError {
     IncorrectNumber(utils::DecimalNumberParsingError),
     IncorrectUnit(String),
