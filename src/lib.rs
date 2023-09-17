@@ -82,6 +82,15 @@ impl std::fmt::Display for NearGas {
     }
 }
 
+impl std::fmt::Debug for NearGasError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            NearGasError::IncorrectNumber(err) => write!(f, "Incorrect number: {:?}", err),
+            NearGasError::IncorrectUnit(err) => write!(f, "Incorrect unit: {}", err),
+        }
+    }
+}
+
 impl NearGas {
     /// Creates a new `NearGas` from the specified number of whole tera Gas.
     ///
@@ -322,7 +331,7 @@ impl schemars::JsonSchema for NearGas {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq)]
 pub enum NearGasError {
     IncorrectNumber(utils::DecimalNumberParsingError),
     IncorrectUnit(String),
@@ -518,5 +527,60 @@ mod test {
         assert_eq!(NearGas::from_gas(17).to_string(), "<0.001 Tgas");
         assert_eq!(NearGas::from_gas(0).to_string(), "0 Tgas");
         assert_eq!(NearGas::from_gas(1_000_000_000_017).to_string(), "1 Tgas");
+    }
+    #[test]
+    fn test_from_str_f64_gas_without_int() {
+        let near_gas = NearGas::from_str(".055ggas").unwrap_err();
+        assert_eq!(
+            near_gas,
+            NearGasError::IncorrectNumber(DecimalNumberParsingError::InvalidNumber(
+                ".055".to_string()
+            ))
+        );
+    }
+    #[test]
+    fn test_from_str_without_currency() {
+        let near_gas = NearGas::from_str("100").unwrap_err();
+        assert_eq!(near_gas, NearGasError::IncorrectUnit("100".to_string()));
+    }
+    #[test]
+    fn test_from_str_incorrect_currency() {
+        let near_gas = NearGas::from_str("100 UAH").unwrap_err();
+        assert_eq!(near_gas, NearGasError::IncorrectUnit("100 UAH".to_string()));
+    }
+    #[test]
+    fn test_from_str_invalid_double_dot() {
+        let near_gas = NearGas::from_str("100.55.").unwrap_err();
+        assert_eq!(near_gas, NearGasError::IncorrectUnit("100.55.".to_string()));
+    }
+    #[test]
+    fn test_from_str_large_fractional_part() {
+        let near_gas = NearGas::from_str("100.1111122222333 ggas").unwrap_err(); // 13 digits after "."
+        assert_eq!(
+            near_gas,
+            NearGasError::IncorrectNumber(DecimalNumberParsingError::LongFractional(
+                "1111122222333".to_string()
+            ))
+        );
+    }
+    #[test]
+    fn test_from_str_large_int_part() {
+        let near_gas = NearGas::from_str("200123456789123.0 tgas").unwrap_err();
+        assert_eq!(
+            near_gas,
+            NearGasError::IncorrectNumber(DecimalNumberParsingError::LongWhole(
+                "200123456789123".to_string()
+            ))
+        );
+    }
+    #[test]
+    fn test_from_str_negative_value() {
+        let near_gas = NearGas::from_str("-100 ggas").unwrap_err();
+        assert_eq!(
+            near_gas,
+            NearGasError::IncorrectNumber(DecimalNumberParsingError::InvalidNumber(
+                "-100".to_string()
+            ))
+        );
     }
 }
