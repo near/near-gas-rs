@@ -120,7 +120,6 @@ impl std::fmt::Display for NearGas {
             } else if self.inner / ONE_GIGA_GAS > 990 {
                 return write!(f, "1 Tgas");
             } else {
-                dbg!(tgas);
                 return write!(f, "{}.{:0>3} Tgas", tgas, (self.inner / ONE_GIGA_GAS));
             }
         }
