@@ -37,9 +37,10 @@ pub struct NearGas {
     inner: u64,
 }
 mod utils;
+use std::error::Error;
+
 use std::u64;
 
-use std::str::FromStr;
 pub use utils::*;
 
 const ONE_TERA_GAS: u64 = 10u64.pow(12);
@@ -65,26 +66,62 @@ impl std::str::FromStr for NearGas {
     }
 }
 
-impl std::convert::From<String> for NearGas {
-    fn from(s: String) -> NearGas {
-        NearGas::from_str(&s).unwrap_or(NearGas::from_gas(0))
-    }
-}
-
 impl std::fmt::Display for NearGas {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if self.as_gas() == 0 {
             return write!(f, "0 Tgas");
         }
+
         let tgas = self.as_tgas();
+        if tgas >= 10 {
+            let diff = self.inner % ONE_TERA_GAS / 10;
+            if diff == 0 {
+                return write!(f, "{} Tgas", tgas);
+            }
+
+            if (self.as_tgas() / 100) % 100 == 0 {
+                return write!(
+                    f,
+                    "{}.{:0>1} Tgas",
+                    self.inner / ONE_TERA_GAS,
+                    (self.inner / (ONE_TERA_GAS / 10) + 1) % 10
+                );
+            }
+            println!("{}", 100);
+            if (self.as_tgas() / 1000) % 1000 == 0 {
+                return write!(
+                    f,
+                    "{}.{:0>3} Tgas",
+                    self.inner / ONE_TERA_GAS,
+                    self.inner / (ONE_TERA_GAS / 1000) % 1000
+                );
+            }
+
+            return write!(f, "{} Tgas", self.inner / ONE_TERA_GAS,);
+        }
         if tgas > 0 {
+            let diff = self.inner % ONE_TERA_GAS / 10;
+            if diff == 0 {
+                return write!(f, "{} Tgas", tgas);
+            }
+            if diff < 990 || diff > 10 {
+                return write!(
+                    f,
+                    "{}.{:0>3} Tgas",
+                    tgas,
+                    (self.inner / (ONE_TERA_GAS / 1000) + 1) % 1000
+                );
+            }
+
             write!(f, "{} Tgas", tgas)
         } else {
-            let float = self.as_gas() as f64 / ONE_TERA_GAS as f64;
-            if float < 0.001 {
+            if self.inner < ONE_TERA_GAS / 1000 {
                 return write!(f, "<0.001 Tgas");
+            } else if self.inner / ONE_GIGA_GAS > 990 {
+                return write!(f, "1 Tgas");
             } else {
-                return write!(f, "{:.1$} Tgas", float, 3);
+                dbg!(tgas);
+                return write!(f, "{}.{:0>3} Tgas", tgas, (self.inner / ONE_GIGA_GAS));
             }
         }
     }
@@ -345,6 +382,15 @@ pub enum NearGasError {
     IncorrectUnit(String),
 }
 
+impl Error for NearGasError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        match self {
+            NearGasError::IncorrectNumber(err) => Some(err),
+            NearGasError::IncorrectUnit(_) => None,
+        }
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::utils::DecimalNumberParsingError;
@@ -530,11 +576,11 @@ mod test {
 
     #[test]
     fn test_display() {
+        assert_eq!(NearGas::from_tgas(7).to_string(), "7 Tgas");
         assert_eq!(NearGas::from_tgas(17).to_string(), "17 Tgas");
         assert_eq!(NearGas::from_ggas(17).to_string(), "0.017 Tgas");
         assert_eq!(NearGas::from_gas(17).to_string(), "<0.001 Tgas");
         assert_eq!(NearGas::from_gas(0).to_string(), "0 Tgas");
-        assert_eq!(NearGas::from_gas(1_000_000_000_017).to_string(), "1 Tgas");
     }
     #[test]
     fn test_from_str_f64_gas_without_int() {
@@ -595,29 +641,58 @@ mod test {
     fn near_gas_from_str_currency_tgas() {
         assert_eq!(
             NearGas::from_str("10 tgas").unwrap(),
-            NearGas::from_gas(10000000000000) // 14 digits
+            NearGas::from_gas(10_000_000_000_000) // 14 digits
         );
         assert_eq!(
             NearGas::from_str("10.055TERAGAS").unwrap(),
-            NearGas::from_gas(10055000000000) // 14 digits
+            NearGas::from_gas(10_055_000_000_000) // 14 digits
         );
     }
     #[test]
     fn near_gas_from_str_currency_gigagas() {
         assert_eq!(
             NearGas::from_str("10 gigagas").unwrap(),
-            NearGas::from_gas(10000000000) // 11 digits
+            NearGas::from_gas(10_000_000_000) // 11 digits
         );
         assert_eq!(
             NearGas::from_str("10GGAS ").unwrap(),
-            NearGas::from_gas(10000000000) // 11 digits
+            NearGas::from_gas(10_000_000_000) // 11 digits
         );
     }
     #[test]
     fn near_gas_from_str_f64_tgas() {
         assert_eq!(
             NearGas::from_str("0.000001 tgas").unwrap(),
-            NearGas::from_gas(1000000) // 7 digits
+            NearGas::from_gas(1_000_000) // 7 digits
+        );
+    }
+    #[test]
+    fn tera_gas() {
+        // 1.123456 Tgas => 1.124 Tgas (round up to 0.001)
+        assert_eq!(
+            NearGas::from_gas(1_123_456_000_000).to_string(),
+            "1.124 Tgas"
+        );
+    }
+    #[test]
+    fn tera_gas_decimal() {
+        //20.123456 Tgas => 20.2 Tgas (round up to 0.1, as least significant digits after the floating point dot are not that important after 20 Tgas)
+        assert_eq!(
+            NearGas::from_gas(20_123_456_000_000).to_string(),
+            "20.2 Tgas"
+        );
+    }
+    #[test]
+    fn tera_almost_1_tera() {
+        // 0.999999 Tgas => 1 Tgas
+        assert_eq!(NearGas::from_gas(0_999_999_000_000).to_string(), "1 Tgas");
+    }
+    #[test]
+    fn tera_gas_tera_plus_17() {
+        // 0.999999 Tgas => 1 Tgas
+        assert_eq!(
+            NearGas::from_gas(1_000_000_000_017).to_string(),
+            "1.001 Tgas"
         );
     }
 }

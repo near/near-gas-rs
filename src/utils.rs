@@ -16,6 +16,7 @@
 /// let prefix = 100000u64;
 /// assert_eq!(parse_decimal_number(number, prefix).unwrap(), 265790u64);
 /// ```
+use std::error::Error;
 pub fn parse_decimal_number(s: &str, pref_const: u64) -> Result<u64, DecimalNumberParsingError> {
     //mast be chenged also in near_balanse!!!
     let (int, fract) = if let Some((whole, fractional)) = s.trim().split_once('.') {
@@ -60,6 +61,36 @@ pub enum DecimalNumberParsingError {
     InvalidNumber(String),
     LongWhole(String),
     LongFractional(String),
+}
+
+impl Error for DecimalNumberParsingError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        None
+    }
+
+    fn description(&self) -> &str {
+        "description() is deprecated; use Display"
+    }
+
+    fn cause(&self) -> Option<&dyn Error> {
+        self.source()
+    }
+}
+
+impl std::fmt::Display for DecimalNumberParsingError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            DecimalNumberParsingError::InvalidNumber(s) => {
+                write!(f, "Invalid number: {}", s)
+            }
+            DecimalNumberParsingError::LongWhole(s) => {
+                write!(f, "Long whole part: {}", s)
+            }
+            DecimalNumberParsingError::LongFractional(s) => {
+                write!(f, "Long fractional part: {}", s)
+            }
+        }
+    }
 }
 
 #[cfg(test)]
