@@ -74,22 +74,45 @@ impl std::fmt::Display for NearGas {
             write!(f, "0 Tgas")
         } else if self.inner < ONE_GIGA_GAS / 1000 {
             write!(f, "0.001 Tgas")
-        } else if tgas < 1 {
-            write!(f, "0.{:0>3} Tgas", self.inner / ONE_GIGA_GAS)
-        } else if self.inner / ONE_GIGA_GAS > 990 && self.inner / ONE_GIGA_GAS < 1010 {
-            write!(f, "1 Tgas")
-        } else if tgas <= 10 && tgas > 1 && self.inner % (ONE_GIGA_GAS / 10) != 0 {
-            let tgas = if self.inner % ONE_TERA_GAS != 0 {
-                tgas + 1
+        } else if self.inner < ONE_TERA_GAS - 1000 {
+            if self.inner % ONE_TERA_GAS / (ONE_TERA_GAS / 1000) < 500 {
+                write!(f, "0.{:0>3} Tgas", self.inner / ONE_GIGA_GAS)
             } else {
-                tgas
-            };
+                write!(f, "1 Tgas")
+            }
+        } else if self.as_gas() % ONE_GIGA_GAS == 0 {
             write!(f, "{} Tgas", tgas)
-        } else if tgas >= 10 && tgas < 100 && self.inner % (ONE_TERA_GAS / 10) != 0 {
-            let tgas = (self.inner + ONE_TERA_GAS) / ONE_TERA_GAS;
-            write!(f, "{}.{:0>1} Tgas", tgas, tgas / ONE_TERA_GAS)
         } else {
-            write!(f, "{} Tgas", tgas)
+            let rounded_tgas = if self.inner % ONE_TERA_GAS > ONE_TERA_GAS / 2 {
+                (self.inner + ONE_TERA_GAS) / ONE_TERA_GAS
+            } else {
+                self.inner / ONE_TERA_GAS
+            };
+            if tgas / 10 == 0 {
+                write!(
+                    f,
+                    "{}.{:0>3} Tgas",
+                    rounded_tgas,
+                    if self.inner % ONE_TERA_GAS / (ONE_TERA_GAS / 1000) < 500 {
+                        self.inner % ONE_TERA_GAS / (ONE_TERA_GAS / 1000) + 1
+                    } else {
+                        0
+                    }
+                )
+            } else if tgas / 100 == 0 {
+                write!(
+                    f,
+                    "{}.{:0>1} Tgas",
+                    rounded_tgas,
+                    if self.inner % ONE_TERA_GAS / (ONE_TERA_GAS / 10) < 5 {
+                        self.inner % ONE_TERA_GAS / (ONE_TERA_GAS / 10) + 1
+                    } else {
+                        0
+                    }
+                )
+            } else {
+                write!(f, "{} Tgas", rounded_tgas)
+            }
         }
     }
 }
@@ -552,8 +575,8 @@ mod test {
             (NearGas::from_gas(17_999_999_000_000), "18.0 Tgas"),
             (NearGas::from_gas(17_998_999_000_000), "18.0 Tgas"),
             (NearGas::from_gas(17_998_998_000_000), "18.0 Tgas"),
-            // (NearGas::from_gas(1_999_999_000_000), "2 Tgas"),
-            (NearGas::from_gas(2_999_999_000_000), "3 Tgas"),
+            (NearGas::from_gas(1_999_999_000_000), "2.000 Tgas"),
+            (NearGas::from_gas(2_999_999_000_000), "3.000 Tgas"),
         ] {
             dbg!((gas.to_string(), expected_display));
             assert_eq!(gas.to_string(), expected_display);
