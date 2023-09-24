@@ -27,6 +27,9 @@ use borsh::{BorshDeserialize, BorshSchema, BorshSerialize};
 #[cfg(feature = "serde")]
 use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 
+mod utils;
+pub use utils::*;
+
 #[derive(Default, Debug, Clone, Copy, PartialEq, PartialOrd, Ord, Eq, Hash)]
 #[cfg_attr(
     feature = "borsh",
@@ -36,9 +39,6 @@ use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 pub struct NearGas {
     inner: u64,
 }
-mod utils;
-use std::u64;
-pub use utils::*;
 
 const ONE_TERA_GAS: u64 = 10u64.pow(12);
 const ONE_GIGA_GAS: u64 = 10u64.pow(9);
@@ -63,6 +63,43 @@ impl std::str::FromStr for NearGas {
     }
 }
 
+/// NearGas Display implementation rounds up the gas usage to the relevant precision point.
+/// There are 4 breakpoints:
+/// 1. exactly 0 Tgas
+/// 2. <0.001 Tgas
+/// 3. 0.001 - 0.999 Tgas (uses 3 digits after the floating point)
+/// 4. >1 Tgas (uses 1 digit after the floating point)
+impl std::fmt::Display for NearGas {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if *self == NearGas::from_gas(0) {
+            write!(f, "0 Tgas")
+        } else if *self < NearGas::from_ggas(1) {
+            write!(f, "<0.001 Tgas")
+        } else if *self <= NearGas::from_ggas(999) {
+            let gigagas_rounded_up = self.as_gas().saturating_add(ONE_GIGA_GAS - 1) / ONE_GIGA_GAS;
+            write!(f, "0.{:03} Tgas", gigagas_rounded_up)
+        } else {
+            let terragas_rounded_up =
+                self.as_gas().saturating_add(100 * ONE_GIGA_GAS - 1) / ONE_GIGA_GAS / 100;
+            write!(
+                f,
+                "{}.{} Tgas",
+                terragas_rounded_up / 10,
+                terragas_rounded_up % 10
+            )
+        }
+    }
+}
+
+impl std::fmt::Display for NearGasError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            NearGasError::IncorrectNumber(err) => write!(f, "Incorrect number: {:?}", err),
+            NearGasError::IncorrectUnit(err) => write!(f, "Incorrect unit: {}", err),
+        }
+    }
+}
+
 impl NearGas {
     /// Creates a new `NearGas` from the specified number of whole tera Gas.
     ///
@@ -73,7 +110,7 @@ impl NearGas {
     /// let tera_gas = NearGas::from_tgas(5);
     ///
     /// assert_eq!(tera_gas.as_gas(), 5 * 1_000_000_000_000);
-    /// ```    
+    /// ```
     pub const fn from_tgas(mut inner: u64) -> Self {
         inner *= ONE_TERA_GAS;
         Self { inner }
@@ -88,7 +125,7 @@ impl NearGas {
     /// let giga_gas = NearGas::from_ggas(5);
     ///
     /// assert_eq!(giga_gas.as_gas(), 5 * 1_000_000_000);
-    /// ```    
+    /// ```
     pub const fn from_ggas(mut inner: u64) -> Self {
         inner *= ONE_GIGA_GAS;
         Self { inner }
@@ -103,7 +140,7 @@ impl NearGas {
     /// let gas = NearGas::from_gas(5 * 1_000_000_000_000);
     ///
     /// assert_eq!(gas.as_tgas(), 5);
-    /// ```    
+    /// ```
     pub const fn from_gas(inner: u64) -> Self {
         Self { inner }
     }
@@ -246,6 +283,11 @@ impl NearGas {
     }
 }
 
+#[cfg(feature = "interactive-clap")]
+impl interactive_clap::ToCli for NearGas {
+    type CliVariant = NearGas;
+}
+
 #[cfg(feature = "serde")]
 impl Serialize for NearGas {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -302,6 +344,15 @@ impl schemars::JsonSchema for NearGas {
 pub enum NearGasError {
     IncorrectNumber(utils::DecimalNumberParsingError),
     IncorrectUnit(String),
+}
+
+impl std::error::Error for NearGasError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            NearGasError::IncorrectNumber(err) => Some(err),
+            NearGasError::IncorrectUnit(_) => None,
+        }
+    }
 }
 
 #[cfg(test)]
@@ -485,5 +536,126 @@ mod test {
         let another_gas = 20;
         assert_eq!(gas.clone().saturating_div(rhs), NearGas::from_gas(5));
         assert_eq!(gas.saturating_div(another_gas), NearGas::from_gas(0));
+    }
+
+    #[test]
+    fn test_display() {
+        for (near_gas, expected_display) in [
+            (NearGas::from_gas(0), "0 Tgas"),
+            (NearGas::from_gas(1), "<0.001 Tgas"),
+            (NearGas::from_gas(999_999_999), "<0.001 Tgas"),
+            (NearGas::from_gas(1_000_000_000), "0.001 Tgas"),
+            (NearGas::from_gas(1_000_000_001), "0.002 Tgas"),
+            (NearGas::from_gas(2_000_000_000), "0.002 Tgas"),
+            (NearGas::from_gas(200_000_000_000), "0.200 Tgas"),
+            (NearGas::from_gas(999_000_000_000), "0.999 Tgas"),
+            (NearGas::from_gas(999_000_000_001), "1.0 Tgas"),
+            (NearGas::from_gas(999_999_999_999), "1.0 Tgas"),
+            (NearGas::from_gas(1_000_000_000_000), "1.0 Tgas"),
+            (NearGas::from_gas(1_000_000_000_001), "1.1 Tgas"),
+            (NearGas::from_gas(1_234_567_000_000), "1.3 Tgas"),
+            (NearGas::from_gas(1_500_000_000_000), "1.5 Tgas"),
+            (NearGas::from_gas(10_000_000_000_000), "10.0 Tgas"),
+            (NearGas::from_gas(10_500_000_000_000), "10.5 Tgas"),
+            (NearGas::from_gas(99_999_999_999_999), "100.0 Tgas"),
+            (NearGas::from_gas(100_000_000_000_000), "100.0 Tgas"),
+            (NearGas::from_gas(100_500_000_000_000), "100.5 Tgas"),
+            (NearGas::from_gas(1_000_500_000_000_000), "1000.5 Tgas"),
+            (
+                NearGas::from_gas(1_000_000_500_000_000_000),
+                "1000000.5 Tgas",
+            ),
+        ] {
+            assert_eq!(
+                near_gas.to_string(),
+                expected_display,
+                "gas: {}",
+                near_gas.as_gas()
+            );
+        }
+    }
+    #[test]
+    fn test_from_str_f64_gas_without_int() {
+        let near_gas = NearGas::from_str(".055ggas").unwrap_err();
+        assert_eq!(
+            near_gas,
+            NearGasError::IncorrectNumber(DecimalNumberParsingError::InvalidNumber(
+                ".055".to_string()
+            ))
+        );
+    }
+    #[test]
+    fn test_from_str_without_currency() {
+        let near_gas = NearGas::from_str("100").unwrap_err();
+        assert_eq!(near_gas, NearGasError::IncorrectUnit("100".to_string()));
+    }
+    #[test]
+    fn test_from_str_incorrect_currency() {
+        let near_gas = NearGas::from_str("100 UAH").unwrap_err();
+        assert_eq!(near_gas, NearGasError::IncorrectUnit("100 UAH".to_string()));
+    }
+    #[test]
+    fn test_from_str_invalid_double_dot() {
+        let near_gas = NearGas::from_str("100.55.").unwrap_err();
+        assert_eq!(near_gas, NearGasError::IncorrectUnit("100.55.".to_string()));
+    }
+    #[test]
+    fn test_from_str_large_fractional_part() {
+        let near_gas = NearGas::from_str("100.1111122222333 ggas").unwrap_err(); // 13 digits after "."
+        assert_eq!(
+            near_gas,
+            NearGasError::IncorrectNumber(DecimalNumberParsingError::LongFractional(
+                "1111122222333".to_string()
+            ))
+        );
+    }
+    #[test]
+    fn test_from_str_large_int_part() {
+        let near_gas = NearGas::from_str("200123456789123.0 tgas").unwrap_err();
+        assert_eq!(
+            near_gas,
+            NearGasError::IncorrectNumber(DecimalNumberParsingError::LongWhole(
+                "200123456789123".to_string()
+            ))
+        );
+    }
+    #[test]
+    fn test_from_str_negative_value() {
+        let near_gas = NearGas::from_str("-100 ggas").unwrap_err();
+        assert_eq!(
+            near_gas,
+            NearGasError::IncorrectNumber(DecimalNumberParsingError::InvalidNumber(
+                "-100".to_string()
+            ))
+        );
+    }
+    #[test]
+    fn near_gas_from_str_currency_tgas() {
+        assert_eq!(
+            NearGas::from_str("10 tgas").unwrap(),
+            NearGas::from_gas(10_000_000_000_000) // 14 digits
+        );
+        assert_eq!(
+            NearGas::from_str("10.055TERAGAS").unwrap(),
+            NearGas::from_gas(10_055_000_000_000) // 14 digits
+        );
+    }
+    #[test]
+    fn near_gas_from_str_currency_gigagas() {
+        assert_eq!(
+            NearGas::from_str("10 gigagas").unwrap(),
+            NearGas::from_gas(10_000_000_000) // 11 digits
+        );
+        assert_eq!(
+            NearGas::from_str("10GGAS ").unwrap(),
+            NearGas::from_gas(10_000_000_000) // 11 digits
+        );
+    }
+    #[test]
+    fn near_gas_from_str_f64_tgas() {
+        assert_eq!(
+            NearGas::from_str("0.000001 tgas").unwrap(),
+            NearGas::from_gas(1_000_000) // 7 digits
+        );
     }
 }

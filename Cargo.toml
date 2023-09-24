@@ -14,6 +14,7 @@ description = "near-gas is crate for work with gas data in near-protocol."
 serde = { version = "1", features = ["derive"], optional = true }
 borsh = { version = "0.9", features = ["const-generics"], optional = true }
 schemars = { version = "0.8.8", optional = true }
+interactive-clap = { version = "0.2.4", optional = true }
 
 [dev-dependencies]
 serde_json = { version = "1" }

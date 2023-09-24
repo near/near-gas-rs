@@ -7,7 +7,7 @@
 /// If the string slice has invalid chars, it will return the error `DecimalNumberParsingError::InvalidNumber`.
 ///
 /// If the whole part of the number has a value more than the `u64` maximum value, it will return the error `DecimalNumberParsingError::LongWhole`.
-///  
+///
 /// # Examples
 /// ```
 /// use near_gas::*;
@@ -60,6 +60,36 @@ pub enum DecimalNumberParsingError {
     InvalidNumber(String),
     LongWhole(String),
     LongFractional(String),
+}
+
+impl std::error::Error for DecimalNumberParsingError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        None
+    }
+
+    fn description(&self) -> &str {
+        "description() is deprecated; use Display"
+    }
+
+    fn cause(&self) -> Option<&dyn std::error::Error> {
+        self.source()
+    }
+}
+
+impl std::fmt::Display for DecimalNumberParsingError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            DecimalNumberParsingError::InvalidNumber(s) => {
+                write!(f, "Invalid number: {}", s)
+            }
+            DecimalNumberParsingError::LongWhole(s) => {
+                write!(f, "Long whole part: {}", s)
+            }
+            DecimalNumberParsingError::LongFractional(s) => {
+                write!(f, "Long fractional part: {}", s)
+            }
+        }
+    }
 }
 
 #[cfg(test)]
