@@ -7,7 +7,7 @@
 /// If the string slice has invalid chars, it will return the error `DecimalNumberParsingError::InvalidNumber`.
 ///
 /// If the whole part of the number has a value more than the `u64` maximum value, it will return the error `DecimalNumberParsingError::LongWhole`.
-///  
+///
 /// # Examples
 /// ```
 /// use near_gas::*;
@@ -16,7 +16,6 @@
 /// let prefix = 100000u64;
 /// assert_eq!(parse_decimal_number(number, prefix).unwrap(), 265790u64);
 /// ```
-use std::error::Error;
 pub fn parse_decimal_number(s: &str, pref_const: u64) -> Result<u64, DecimalNumberParsingError> {
     //mast be chenged also in near_balanse!!!
     let (int, fract) = if let Some((whole, fractional)) = s.trim().split_once('.') {
@@ -63,8 +62,8 @@ pub enum DecimalNumberParsingError {
     LongFractional(String),
 }
 
-impl Error for DecimalNumberParsingError {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
+impl std::error::Error for DecimalNumberParsingError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         None
     }
 
@@ -72,7 +71,7 @@ impl Error for DecimalNumberParsingError {
         "description() is deprecated; use Display"
     }
 
-    fn cause(&self) -> Option<&dyn Error> {
+    fn cause(&self) -> Option<&dyn std::error::Error> {
         self.source()
     }
 }
