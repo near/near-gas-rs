@@ -23,7 +23,9 @@
 //! * **schemars** -
 //!  Implements `schemars::JsonSchema` for `NearGas`.
 #[cfg(feature = "borsh")]
-use borsh::{BorshDeserialize, BorshSchema, BorshSerialize};
+use borsh::{BorshDeserialize, BorshSerialize};
+#[cfg(feature = "abi")]
+use borsh::BorshSchema;
 #[cfg(feature = "serde")]
 use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 
@@ -33,7 +35,11 @@ pub use utils::*;
 #[derive(Default, Debug, Clone, Copy, PartialEq, PartialOrd, Ord, Eq, Hash)]
 #[cfg_attr(
     feature = "borsh",
-    derive(BorshDeserialize, BorshSerialize, BorshSchema)
+    derive(BorshDeserialize, BorshSerialize)
+)]
+#[cfg_attr(
+    feature = "abi",
+    derive(BorshSchema)
 )]
 #[repr(transparent)]
 pub struct NearGas {
