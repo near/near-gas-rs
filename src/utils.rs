@@ -7,17 +7,10 @@
 /// If the string slice has invalid chars, it will return the error `DecimalNumberParsingError::InvalidNumber`.
 ///
 /// If the whole part of the number has a value more than the `u64` maximum value, it will return the error `DecimalNumberParsingError::LongWhole`.
-///
-/// # Examples
-/// ```
-/// use near_gas::*;
-///
-/// let number = "2.65790";
-/// let prefix = 100000u64;
-/// assert_eq!(parse_decimal_number(number, prefix).unwrap(), 265790u64);
-/// ```
-pub fn parse_decimal_number(s: &str, pref_const: u64) -> Result<u64, DecimalNumberParsingError> {
-    //mast be chenged also in near_balanse!!!
+pub(crate) fn parse_decimal_number(
+    s: &str,
+    pref_const: u64,
+) -> Result<u64, DecimalNumberParsingError> {
     let (int, fract) = if let Some((whole, fractional)) = s.trim().split_once('.') {
         let int: u64 = whole
             .parse()
@@ -33,7 +26,7 @@ pub fn parse_decimal_number(s: &str, pref_const: u64) -> Result<u64, DecimalNumb
                     .checked_div(10u64.checked_pow(len).ok_or_else(|| {
                         DecimalNumberParsingError::LongFractional(fractional.to_owned())
                     })?)
-                    .filter(|n| n != &0u64)
+                    .filter(|n| *n != 0u64)
                     .ok_or_else(|| {
                         DecimalNumberParsingError::LongFractional(fractional.to_owned())
                     })?,
@@ -94,24 +87,22 @@ impl std::fmt::Display for DecimalNumberParsingError {
 
 #[cfg(test)]
 mod tests {
-    use crate::utils::*;
-    use crate::*;
+    use super::*;
 
     const TEST: [(u64, &'static str, u64); 6] = [
-        (129380_000_001u64, "129.380000001", ONE_GIGA_GAS),
-        (12938_000_000_100_000_000u64, "12938000000.1", ONE_GIGA_GAS),
-        (129380_000_001u64, "0.129380000001", ONE_TERA_GAS),
-        (129380_000_001_000u64, "129.380000001000", ONE_TERA_GAS),
-        (9488129380_000_001u64, "9488.129380000001", ONE_TERA_GAS),
-        (129380_000_001u64, "00.129380000001", ONE_TERA_GAS),
+        (129380_000_001u64, "129.380000001", 10u64.pow(9)),
+        (12938_000_000_100_000_000u64, "12938000000.1", 10u64.pow(9)),
+        (129380_000_001u64, "0.129380000001", 10u64.pow(12)),
+        (129380_000_001_000u64, "129.380000001000", 10u64.pow(12)),
+        (9488129380_000_001u64, "9488.129380000001", 10u64.pow(12)),
+        (129380_000_001u64, "00.129380000001", 10u64.pow(12)),
     ];
 
     #[test]
     fn parse_test() {
-        for test in TEST {
-            let test_data = test.0;
-            let gas = parse_decimal_number(test.1, test.2).unwrap();
-            assert_eq!(test_data, gas)
+        for (expected_value, str_value, precision) in TEST {
+            let parsed_value = parse_decimal_number(str_value, precision).unwrap();
+            assert_eq!(parsed_value, expected_value)
         }
     }
 
@@ -164,7 +155,7 @@ mod tests {
     #[test]
     fn long_whole_test() {
         let data = 10u64.pow(17) + 1;
-        let prefix = ONE_TERA_GAS;
+        let prefix = 10u64.pow(12);
         let s = data.to_string() + "." + "1";
         assert_eq!(
             parse_decimal_number(s.as_str(), prefix),
@@ -175,7 +166,7 @@ mod tests {
     #[test]
     fn parse_u64_errortest() {
         let test_data = u64::MAX.to_string();
-        let gas = parse_decimal_number(&test_data, ONE_GIGA_GAS);
+        let gas = parse_decimal_number(&test_data, 10u64.pow(9));
         assert_eq!(
             gas,
             Err(DecimalNumberParsingError::LongWhole(u64::MAX.to_string()))
