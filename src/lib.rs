@@ -37,10 +37,7 @@ pub use self::utils::DecimalNumberParsingError;
     feature = "borsh",
     derive(borsh::BorshDeserialize, borsh::BorshSerialize)
 )]
-#[cfg_attr(
-    feature = "abi",
-    derive(borsh::BorshSchema)
-)]
+#[cfg_attr(feature = "abi", derive(borsh::BorshSchema))]
 #[repr(transparent)]
 pub struct NearGas {
     inner: u64,

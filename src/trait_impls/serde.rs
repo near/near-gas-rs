@@ -12,9 +12,8 @@ impl Serialize for NearGas {
         let remainder = {
             use std::io::Write;
             let mut w: &mut [u8] = &mut buf;
-            write!(w, "{}", self.inner).map_err(|err| {
-                Error::custom(format!("Failed to serialize: {}", err))
-            })?;
+            write!(w, "{}", self.inner)
+                .map_err(|err| Error::custom(format!("Failed to serialize: {}", err)))?;
             w.len()
         };
         let len = buf.len() - remainder;
