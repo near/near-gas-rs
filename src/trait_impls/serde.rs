@@ -13,14 +13,14 @@ impl Serialize for NearGas {
             use std::io::Write;
             let mut w: &mut [u8] = &mut buf;
             write!(w, "{}", self.inner).map_err(|err| {
-                Error::custom(format!("Failed to serialize: {}", err.to_string()))
+                Error::custom(format!("Failed to serialize: {}", err))
             })?;
             w.len()
         };
         let len = buf.len() - remainder;
 
         let s = std::str::from_utf8(&buf[..len])
-            .map_err(|err| Error::custom(format!("Failed to serialize: {}", err.to_string())))?;
+            .map_err(|err| Error::custom(format!("Failed to serialize: {}", err)))?;
         serializer.serialize_str(s)
     }
 }
