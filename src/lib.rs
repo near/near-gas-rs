@@ -7,9 +7,9 @@
 //! ```
 //! use near_gas::*;
 //!
-//! let one_tera_gas = NearGas::from_gas(10u64.pow(12));
-//! assert_eq!(one_tera_gas, NearGas::from_tgas(1u64));
-//! assert_eq!(one_tera_gas, NearGas::from_ggas(1000u64));
+//! let one_tera_gas = NearGas::from_gas(10_u64.pow(12));
+//! assert_eq!(one_tera_gas, NearGas::from_tgas(1));
+//! assert_eq!(one_tera_gas, NearGas::from_ggas(1000));
 //! ```
 //!
 //! # Crate features
