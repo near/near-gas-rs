@@ -1,3 +1,9 @@
+<p>
+    <a href="https://crates.io/crates/near-gas"><img src="https://img.shields.io/crates/dv/near-gas?style=flat-square&logo=near&label=crates.io" alt="Crates.io (latest)"></a>
+    <a href="https://docs.rs/near-gas/0.0.1/near_token"><img src="https://img.shields.io/docsrs/near-gas?style=flat-square" alt="Docs.rs"></a>
+    <img src="https://img.shields.io/badge/rustc-1.68%2B-lightgray.svg?style=flat-square" alt="Rust Version">
+</p>
+
 # near-gas
 near-gas is crate for work with gas data in near-protocol.
 
@@ -23,7 +29,7 @@ fn main() {
 ## NearGas information
 On every transaction you send to the network NEAR charges you a fee (aka gas fee). This fee is used to indirectly pay the people that keep the network infrastructure, and to incentivize developers of smart contracts. [For more information].
 
-[Gas usege in Near Protocol]
+[Gas usage in Near Protocol]
  
 
 
