@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.5](https://github.com/near/near-gas/compare/v0.2.4...v0.2.5) - 2023-10-23
+
+### Other
+- Update README.md
+- Fixed typo and added badges in README.md ([#12](https://github.com/near/near-gas/pull/12))
+
 ## [0.2.4](https://github.com/near/near-gas/compare/v0.2.3...v0.2.4) - 2023-10-22
 
 ### Other
