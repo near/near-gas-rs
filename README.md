@@ -1,5 +1,5 @@
 <p>
-    <a href="https://crates.io/crates/near-gas"><img src="https://img.shields.io/crates/dv/near-gas?style=flat-square&logo=near&label=crates.io" alt="Crates.io (latest)"></a>
+    <a href="https://crates.io/crates/near-gas"><img src="https://img.shields.io/crates/d/near-gas?style=flat-square&logo=near&label=crates.io" alt="Crates.io (downloads)"></a>
     <a href="https://docs.rs/near-gas/latest/near_gas/"><img src="https://img.shields.io/docsrs/near-gas?style=flat-square" alt="Docs.rs"></a>
     <img src="https://img.shields.io/badge/rustc-1.68%2B-lightgray.svg?style=flat-square" alt="Rust Version">
 </p>
