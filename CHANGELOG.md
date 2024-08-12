@@ -6,7 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.2.7](https://github.com/near/near-gas-rs/compare/v0.2.5...v0.2.7) - 2024-08-12
+## [0.3.0](https://github.com/near/near-gas-rs/compare/v0.2.5...v0.3.0) - 2024-08-12
+
+### Other
+- Extended the range of supported interactive-clap versions to be >=0.2,<0.4 ([#15](https://github.com/near/near-gas-rs/pull/15))
+
+## [0.2.7](https://github.com/near/near-gas-rs/compare/v0.2.5...v0.2.7) - 2024-08-12 (yanked due to [invalid interactive-clap version](https://users.rust-lang.org/t/cargo-duplicating-dependency-when-it-seems-like-it-shouldnt-be/87883/6) gets pulled in new projects)
 
 ### Other
 - Extended the range of supported interactive-clap versions to be >=0.2,<0.4 ([#15](https://github.com/near/near-gas-rs/pull/15))
