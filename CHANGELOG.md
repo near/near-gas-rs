@@ -6,7 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.2.6](https://github.com/near/near-gas-rs/compare/v0.2.5...v0.2.6) - 2024-08-12
+## [0.2.7](https://github.com/near/near-gas-rs/compare/v0.2.5...v0.2.7) - 2024-08-12
+
+### Other
+- Extended the range of supported interactive-clap versions to be >=0.2,<0.4 ([#15](https://github.com/near/near-gas-rs/pull/15))
+
+## [0.2.6](https://github.com/near/near-gas-rs/compare/v0.2.5...v0.2.6) - 2024-08-12 (yanked due to invalid interactive-clap version range)
 
 ### Other
 - Extended the range of supported interactive-clap versions ([#15](https://github.com/near/near-gas-rs/pull/15))
