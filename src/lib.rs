@@ -21,10 +21,10 @@
 //!   When enabled allows `NearGas` to serialized and deserialized by `serde`.
 //!
 //! * **schemars** (optional) -
-//!  Implements `schemars::JsonSchema` for `NearGas`.
+//!   Implements `schemars::JsonSchema` for `NearGas`.
 //!
 //! * **interactive-clap** (optional) -
-//!  Implements `interactive_clap::ToCli` for `NearGas`.
+//!   Implements `interactive_clap::ToCli` for `NearGas`.
 mod error;
 mod trait_impls;
 mod utils;
@@ -290,10 +290,7 @@ mod test {
         let gas = NearGas::from_gas(100);
         let added_gas = NearGas::from_gas(1);
         let another_gas = NearGas::from_gas(u64::MAX);
-        assert_eq!(
-            gas.saturating_add(added_gas.clone()),
-            NearGas::from_gas(101)
-        );
+        assert_eq!(gas.saturating_add(added_gas), NearGas::from_gas(101));
         assert_eq!(
             another_gas.saturating_add(added_gas),
             NearGas::from_gas(u64::MAX)
@@ -305,7 +302,7 @@ mod test {
         let gas = NearGas::from_gas(100);
         let rhs_gas = NearGas::from_gas(1);
         let another_gas = NearGas::from_gas(u64::MIN);
-        assert_eq!(gas.saturating_sub(rhs_gas.clone()), NearGas::from_gas(99));
+        assert_eq!(gas.saturating_sub(rhs_gas), NearGas::from_gas(99));
         assert_eq!(
             another_gas.saturating_sub(rhs_gas),
             NearGas::from_gas(u64::MIN)
