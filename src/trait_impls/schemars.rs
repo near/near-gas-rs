@@ -19,7 +19,7 @@ impl schemars::JsonSchema for NearGas {
 #[cfg(feature = "schemars-v1")]
 impl schemars::JsonSchema for NearGas {
     fn schema_name() -> std::borrow::Cow<'static, str> {
-        String::schema_name()
+        "NearGas".to_string().into()
     }
 
     fn json_schema(gen: &mut schemars::SchemaGenerator) -> schemars::Schema {
