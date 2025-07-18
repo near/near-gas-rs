@@ -6,6 +6,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.1](https://github.com/near/near-gas-rs/compare/v0.3.0...v0.3.1) - 2025-07-18
+
+### Added
+
+- allowed to deserialize from u64 ([#19](https://github.com/near/near-gas-rs/pull/19))
+
+### Other
+
+- Use ubuntu-latest for CI runners instead of the deprecated ubuntu-20.04
+
 ## [0.3.0](https://github.com/near/near-gas-rs/compare/v0.2.5...v0.3.0) - 2024-08-12
 
 ### Other
