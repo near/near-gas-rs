@@ -1,4 +1,4 @@
-use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 use crate::NearGas;
 
@@ -29,10 +29,34 @@ impl<'de> Deserialize<'de> for NearGas {
     where
         D: Deserializer<'de>,
     {
-        let s: String = Deserialize::deserialize(deserializer)?;
-        s.parse::<u64>()
-            .map(NearGas::from_gas)
-            .map_err(|err| de::Error::custom(err.to_string()))
+        struct StringOrNumberVisitor;
+
+        impl serde::de::Visitor<'_> for StringOrNumberVisitor {
+            type Value = NearGas;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+                formatter.write_str("a string or a number")
+            }
+
+            fn visit_str<E>(self, value: &str) -> Result<NearGas, E>
+            where
+                E: serde::de::Error,
+            {
+                value
+                    .parse::<u64>()
+                    .map(NearGas::from_gas)
+                    .map_err(serde::de::Error::custom)
+            }
+
+            fn visit_u64<E>(self, value: u64) -> Result<NearGas, E>
+            where
+                E: serde::de::Error,
+            {
+                Ok(NearGas::from_gas(value))
+            }
+        }
+
+        deserializer.deserialize_any(StringOrNumberVisitor)
     }
 }
 
@@ -53,5 +77,13 @@ mod test {
         test_json_ser(u64::MAX);
         test_json_ser(8);
         test_json_ser(0);
+    }
+
+    #[test]
+    fn json_deser_from_string_and_number() {
+        let gas = serde_json::from_str::<NearGas>("\"100\"").unwrap();
+        assert_eq!(gas.as_gas(), 100);
+        let gas = serde_json::from_str::<NearGas>("100").unwrap();
+        assert_eq!(gas.as_gas(), 100);
     }
 }
