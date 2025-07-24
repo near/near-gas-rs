@@ -8,11 +8,11 @@ impl schemars::JsonSchema for NearGas {
     }
 
     fn schema_name() -> String {
-        String::schema_name()
+        u64::schema_name()
     }
 
     fn json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
-        String::json_schema(gen)
+        u64::json_schema(gen)
     }
 }
 
@@ -23,6 +23,6 @@ impl schemars::JsonSchema for NearGas {
     }
 
     fn json_schema(gen: &mut schemars::SchemaGenerator) -> schemars::Schema {
-        String::json_schema(gen)
+        u64::json_schema(gen)
     }
 }

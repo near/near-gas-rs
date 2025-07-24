@@ -2,25 +2,20 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 use crate::NearGas;
 
+const JS_MAX_SAFE_INTEGER: u64 = (1u64 << 53) - 1;
+
 impl Serialize for NearGas {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
-        use serde::ser::Error;
-        let mut buf = [0u8; 20];
-        let remainder = {
-            use std::io::Write;
-            let mut w: &mut [u8] = &mut buf;
-            write!(w, "{}", self.inner)
-                .map_err(|err| Error::custom(format!("Failed to serialize: {}", err)))?;
-            w.len()
-        };
-        let len = buf.len() - remainder;
-
-        let s = std::str::from_utf8(&buf[..len])
-            .map_err(|err| Error::custom(format!("Failed to serialize: {}", err)))?;
-        serializer.serialize_str(s)
+        if self.inner > JS_MAX_SAFE_INTEGER {
+            return Err(serde::ser::Error::custom(format!(
+                "NearGas value {} exceeds JavaScript safe integer limit so it cannot be serialized as a number",
+                self.inner
+            )));
+        }
+        serializer.serialize_u64(self.inner)
     }
 }
 
@@ -63,18 +58,19 @@ impl<'de> Deserialize<'de> for NearGas {
 #[cfg(test)]
 mod test {
     use crate::NearGas;
+    use crate::trait_impls::serde::JS_MAX_SAFE_INTEGER;
 
     #[test]
     fn json_ser() {
         fn test_json_ser(val: u64) {
             let gas = NearGas::from_gas(val);
             let ser = serde_json::to_string(&gas).unwrap();
-            assert_eq!(ser, format!("\"{}\"", val));
+            assert_eq!(ser, format!("{}", val));
             let de: NearGas = serde_json::from_str(&ser).unwrap();
             assert_eq!(de.as_gas(), val);
         }
 
-        test_json_ser(u64::MAX);
+        test_json_ser(JS_MAX_SAFE_INTEGER);
         test_json_ser(8);
         test_json_ser(0);
     }
