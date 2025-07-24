@@ -1,6 +1,8 @@
 use crate::NearGas;
 use crate::trait_impls::schemars_exports::schemars;
 
+const JS_MAX_SAFE_INTEGER: u64 = (1u64 << 53) - 1;
+
 #[cfg(feature = "schemars-v0_8")]
 impl schemars::JsonSchema for NearGas {
     fn is_referenceable() -> bool {
@@ -22,7 +24,12 @@ impl schemars::JsonSchema for NearGas {
         "NearGas".to_string().into()
     }
 
-    fn json_schema(gen: &mut schemars::SchemaGenerator) -> schemars::Schema {
-        u64::json_schema(gen)
+    fn json_schema(_: &mut schemars::SchemaGenerator) -> schemars::Schema {
+        schemars::json_schema!({
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 0,
+            "maximum": JS_MAX_SAFE_INTEGER,
+        })
     }
 }
