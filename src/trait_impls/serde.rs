@@ -2,20 +2,25 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 use crate::NearGas;
 
-const JS_MAX_SAFE_INTEGER: u64 = (1u64 << 53) - 1;
-
 impl Serialize for NearGas {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
-        if self.inner > JS_MAX_SAFE_INTEGER {
-            return Err(serde::ser::Error::custom(format!(
-                "NearGas value {} exceeds JavaScript safe integer limit so it cannot be serialized as a number",
-                self.inner
-            )));
-        }
-        serializer.serialize_u64(self.inner)
+        use serde::ser::Error;
+        let mut buf = [0u8; 20];
+        let remainder = {
+            use std::io::Write;
+            let mut w: &mut [u8] = &mut buf;
+            write!(w, "{}", self.inner)
+                .map_err(|err| Error::custom(format!("Failed to serialize: {}", err)))?;
+            w.len()
+        };
+        let len = buf.len() - remainder;
+
+        let s = std::str::from_utf8(&buf[..len])
+            .map_err(|err| Error::custom(format!("Failed to serialize: {}", err)))?;
+        serializer.serialize_str(s)
     }
 }
 
