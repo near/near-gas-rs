@@ -63,7 +63,6 @@ impl<'de> Deserialize<'de> for NearGas {
 #[cfg(test)]
 mod test {
     use crate::NearGas;
-    use crate::trait_impls::serde::JS_MAX_SAFE_INTEGER;
 
     #[test]
     fn json_ser() {
@@ -75,7 +74,7 @@ mod test {
             assert_eq!(de.as_gas(), val);
         }
 
-        test_json_ser(JS_MAX_SAFE_INTEGER);
+        test_json_ser(u64::MAX);
         test_json_ser(8);
         test_json_ser(0);
     }

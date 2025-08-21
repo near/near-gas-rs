@@ -32,8 +32,6 @@ mod utils;
 pub use self::error::NearGasError;
 pub use self::utils::DecimalNumberParsingError;
 
-const JS_MAX_SAFE_INTEGER: u64 = (1u64 << 53) - 1;
-
 #[derive(Default, Debug, Clone, Copy, PartialEq, PartialOrd, Ord, Eq, Hash)]
 #[cfg_attr(
     feature = "borsh",
@@ -244,10 +242,6 @@ impl NearGas {
             return NearGas::from_gas(0);
         }
         NearGas::from_gas(self.as_gas().saturating_div(rhs))
-    }
-
-    pub const fn gas_limit() -> NearGas {
-        NearGas::from_gas(JS_MAX_SAFE_INTEGER)
     }
 }
 
