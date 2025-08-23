@@ -69,7 +69,7 @@ mod test {
         fn test_json_ser(val: u64) {
             let gas = NearGas::from_gas(val);
             let ser = serde_json::to_string(&gas).unwrap();
-            assert_eq!(ser, format!("{}", val));
+            assert_eq!(ser, format!("\"{}\"", val));
             let de: NearGas = serde_json::from_str(&ser).unwrap();
             assert_eq!(de.as_gas(), val);
         }

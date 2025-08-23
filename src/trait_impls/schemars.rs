@@ -1,5 +1,5 @@
-use crate::NearGas;
 use crate::trait_impls::schemars_exports::schemars;
+use crate::NearGas;
 
 #[cfg(feature = "schemars-v0_8")]
 impl schemars::JsonSchema for NearGas {
@@ -35,11 +35,11 @@ impl schemars::JsonSchema for NearGas {
 
 #[cfg(test)]
 mod test {
+    use crate::trait_impls::schemars_exports::schemars;
+    use crate::NearGas;
     use serde_json::json;
-	use crate::NearGas;
-	use crate::trait_impls::schemars_exports::schemars;
 
-	#[test]
+    #[test]
     #[cfg(feature = "schemars-v0_8")]
     fn json_schema_json_eq_v0_8() {
         let root = schemars::schema_for!(NearGas);
@@ -52,6 +52,9 @@ mod test {
     fn json_schema_json_eq_v1() {
         let root = schemars::schema_for!(NearGas);
         let schema_json = serde_json::to_value(&root).unwrap();
-        assert_eq!(schema_json, json!({ "$schema": "https://json-schema.org/draft/2020-12/schema", "title": "NearGas", "type": "string" }));
+        assert_eq!(
+            schema_json,
+            json!({ "$schema": "https://json-schema.org/draft/2020-12/schema", "title": "NearGas", "type": "string" })
+        );
     }
 }

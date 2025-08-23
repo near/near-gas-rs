@@ -23,10 +23,11 @@ interactive-clap = { version = ">=0.2,<0.4", optional = true }
 serde_json = { version = "1" }
 
 [features]
+__all-non-conflicting-features = ["serde", "interactive-clap", "borsh"]
 abi = ["borsh/unstable__schema", "schemars"]
 serde = ["dep:serde"]
 interactive-clap = ["dep:interactive-clap"]
 borsh = ["dep:borsh"]
-schemars = ["dep:schemars-v0_8"]
-schemars-v1 = ["schemars", "dep:schemars-v1"]
-schemars-v0_8 = ["schemars", "dep:schemars-v0_8"] 
+schemars = ["schemars-v0_8"]
+schemars-v1 = ["dep:schemars-v1"]
+schemars-v0_8 = ["dep:schemars-v0_8"] 
