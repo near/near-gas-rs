@@ -1,8 +1,7 @@
-use crate::trait_impls::schemars_exports::schemars;
 use crate::NearGas;
 
 #[cfg(feature = "schemars-v0_8")]
-impl schemars::JsonSchema for NearGas {
+impl schemars_v0_8::JsonSchema for NearGas {
     fn is_referenceable() -> bool {
         false
     }
@@ -11,8 +10,8 @@ impl schemars::JsonSchema for NearGas {
         "NearGas".to_string()
     }
 
-    fn json_schema(_: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
-        use schemars::schema::{InstanceType, Schema, SchemaObject, SingleOrVec};
+    fn json_schema(_: &mut schemars_v0_8::gen::SchemaGenerator) -> schemars_v0_8::schema::Schema {
+        use schemars_v0_8::schema::{InstanceType, Schema, SchemaObject, SingleOrVec};
         Schema::Object(SchemaObject {
             instance_type: Some(SingleOrVec::Single(Box::new(InstanceType::String))),
             ..Default::default()
@@ -21,13 +20,13 @@ impl schemars::JsonSchema for NearGas {
 }
 
 #[cfg(feature = "schemars-v1")]
-impl schemars::JsonSchema for NearGas {
+impl schemars_v1::JsonSchema for NearGas {
     fn schema_name() -> std::borrow::Cow<'static, str> {
         "NearGas".to_string().into()
     }
 
-    fn json_schema(_: &mut schemars::SchemaGenerator) -> schemars::Schema {
-        schemars::json_schema!({
+    fn json_schema(_: &mut schemars_v1::SchemaGenerator) -> schemars_v1::Schema {
+        schemars_v1::json_schema!({
             "type": "string",
         })
     }
@@ -35,14 +34,13 @@ impl schemars::JsonSchema for NearGas {
 
 #[cfg(test)]
 mod test {
-    use crate::trait_impls::schemars_exports::schemars;
     use crate::NearGas;
     use serde_json::json;
 
     #[test]
     #[cfg(feature = "schemars-v0_8")]
     fn json_schema_json_eq_v0_8() {
-        let root = schemars::schema_for!(NearGas);
+        let root = schemars_v0_8::schema_for!(NearGas);
         let schema_json = serde_json::to_value(&root.schema).unwrap();
         assert_eq!(schema_json, json!({ "title": "NearGas", "type": "string" }));
     }
@@ -50,7 +48,7 @@ mod test {
     #[test]
     #[cfg(feature = "schemars-v1")]
     fn json_schema_json_eq_v1() {
-        let root = schemars::schema_for!(NearGas);
+        let root = schemars_v1::schema_for!(NearGas);
         let schema_json = serde_json::to_value(&root).unwrap();
         assert_eq!(
             schema_json,
