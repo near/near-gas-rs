@@ -54,6 +54,19 @@ impl<'de> Deserialize<'de> for NearGas {
             {
                 Ok(NearGas::from_gas(value))
             }
+
+            fn visit_i64<E>(self, value: i64) -> Result<NearGas, E>
+            where
+                E: serde::de::Error,
+            {
+                let Ok(value_u64) = value.try_into() else {
+                    return Err(serde::de::Error::custom(
+                        "Negative value cannot be converted to NearGas",
+                    ));
+                };
+
+                Ok(NearGas::from_gas(value_u64))
+            }
         }
 
         deserializer.deserialize_any(StringOrNumberVisitor)
@@ -84,6 +97,30 @@ mod test {
         let gas = serde_json::from_str::<NearGas>("\"100\"").unwrap();
         assert_eq!(gas.as_gas(), 100);
         let gas = serde_json::from_str::<NearGas>("100").unwrap();
+        assert_eq!(gas.as_gas(), 100);
+    }
+
+    #[test]
+    fn bson_ser() {
+        fn test_bson_ser(val: u64) {
+            let gas = NearGas::from_gas(val);
+            let ser = bson::to_bson(&gas).unwrap();
+            assert_eq!(ser, bson::Bson::String(format!("{}", val)));
+            assert_eq!(ser.to_string(), format!("\"{}\"", val));
+            let de: NearGas = bson::from_bson(ser).unwrap();
+            assert_eq!(de.as_gas(), val);
+        }
+
+        test_bson_ser(u64::MAX);
+        test_bson_ser(8);
+        test_bson_ser(0);
+    }
+
+    #[test]
+    fn bson_deser_from_string_and_number() {
+        let gas = bson::from_bson::<NearGas>(bson::Bson::Int64(100)).unwrap();
+        assert_eq!(gas.as_gas(), 100);
+        let gas = bson::from_bson::<NearGas>(bson::Bson::String("100".to_string())).unwrap();
         assert_eq!(gas.as_gas(), 100);
     }
 }
