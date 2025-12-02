@@ -20,6 +20,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.3](https://github.com/near/near-gas-rs/compare/v0.3.2...v0.3.3) - 2025-12-02
+
+### Added
+
+- Added i64 deserialization support to fix `bson` compatibility ([#25](https://github.com/near/near-gas-rs/pull/25))
+- Support both schemars versions simultaneously ([#23](https://github.com/near/near-gas-rs/pull/23))
+
 ## [0.3.1](https://github.com/near/near-gas-rs/compare/v0.3.0...v0.3.1) - 2025-07-18
 
 ### Added
