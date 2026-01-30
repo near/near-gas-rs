@@ -91,6 +91,18 @@ impl NearGas {
         Self { inner }
     }
 
+    /// Returns whether the gas value is zero.
+    ///
+    /// # Examples
+    /// ```
+    /// # use near_gas::NearGas;
+    /// assert!(NearGas::from_gas(0).is_zero());
+    /// assert!(!NearGas::from_gas(1).is_zero());
+    /// ```
+    pub const fn is_zero(&self) -> bool {
+        self.as_gas() == 0
+    }
+
     /// Returns the total number of whole Gas contained by this `NearGas`.
     ///
     /// # Examples
