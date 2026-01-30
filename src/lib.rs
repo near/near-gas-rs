@@ -102,7 +102,7 @@ impl NearGas {
     pub const fn is_zero(&self) -> bool {
         self.as_gas() == 0
     }
-    
+
     /// Returns the total number of whole Gas contained by this `NearGas`.
     ///
     /// # Examples
