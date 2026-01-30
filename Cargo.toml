@@ -23,6 +23,9 @@ interactive-clap = { version = ">=0.2,<0.4", optional = true }
 serde_json = { version = "1" }
 bson = "2.8.0"
 
+# Lock "time" crate ("bson" dependency) to fix CI, as time v0.3.46 bumped MSRV to 1.88.0
+time = "^0.3.6,<0.3.46"
+
 [features]
 abi = ["borsh/unstable__schema", "schemars"]
 serde = ["dep:serde"]
@@ -30,4 +33,4 @@ interactive-clap = ["dep:interactive-clap"]
 borsh = ["dep:borsh"]
 schemars = ["schemars-v0_8"]
 schemars-v1 = ["dep:schemars-v1"]
-schemars-v0_8 = ["dep:schemars-v0_8"] 
+schemars-v0_8 = ["dep:schemars-v0_8"]
