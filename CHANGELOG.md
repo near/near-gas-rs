@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.5](https://github.com/near/near-gas-rs/compare/v0.3.4...v0.3.5) - 2026-02-10
+
+### Other
+
+- upgrade to Rust edition 2024 ([#29](https://github.com/near/near-gas-rs/pull/29))
+
 ## [0.3.4](https://github.com/near/near-gas-rs/compare/v0.3.3...v0.3.4) - 2026-01-30
 
 ### Added
