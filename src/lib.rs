@@ -43,10 +43,26 @@ pub struct NearGas {
     inner: u64,
 }
 
+const ONE_PETA_GAS: u64 = 10u64.pow(15);
 const ONE_TERA_GAS: u64 = 10u64.pow(12);
 const ONE_GIGA_GAS: u64 = 10u64.pow(9);
 
 impl NearGas {
+    /// Creates a new `NearGas` from the specified number of whole peta Gas.
+    ///
+    /// # Examples
+    /// ```
+    /// use near_gas::NearGas;
+    ///
+    /// let tera_gas = NearGas::from_pgas(1);
+    ///
+    /// assert_eq!(tera_gas.as_gas(), 1_000_000_000_000_000);
+    /// ```
+    pub const fn from_pgas(mut inner: u64) -> Self {
+        inner *= ONE_PETA_GAS;
+        Self { inner }
+    }
+
     /// Creates a new `NearGas` from the specified number of whole tera Gas.
     ///
     /// # Examples
@@ -137,6 +153,18 @@ impl NearGas {
     /// ```
     pub const fn as_tgas(self) -> u64 {
         self.inner / ONE_TERA_GAS
+    }
+
+    /// Returns the total number of a whole part of peta Gas contained by this `NearGas`.
+    ///
+    /// # Examples
+    /// ```
+    /// use near_gas::NearGas;
+    /// let neargas = NearGas::from_gas(1 * 1_000_000_000_000_000);
+    /// assert_eq!(neargas.as_pgas(), 1);
+    /// ```
+    pub const fn as_pgas(self) -> u64 {
+        self.inner / ONE_PETA_GAS
     }
 
     /// Checked integer addition. Computes self + rhs, returning None if overflow occurred.
