@@ -1,4 +1,4 @@
-use crate::{NearGas, NearGasError, ONE_GIGA_GAS, ONE_TERA_GAS};
+use crate::{NearGas, NearGasError, ONE_GIGA_GAS, ONE_PETA_GAS, ONE_TERA_GAS};
 
 impl std::str::FromStr for NearGas {
     type Err = NearGasError;
@@ -9,6 +9,7 @@ impl std::str::FromStr for NearGas {
                 .ok_or_else(|| NearGasError::IncorrectUnit(s.to_owned()))?,
         );
         let unit_precision = match unit {
+            "PGAS" | "PETAGAS" => ONE_PETA_GAS,
             "TGAS" | "TERAGAS" => ONE_TERA_GAS,
             "GIGAGAS" | "GGAS" => ONE_GIGA_GAS,
             _ => return Err(NearGasError::IncorrectUnit(s.to_owned())),
@@ -146,6 +147,17 @@ mod test {
     }
 
     #[test]
+    fn near_gas_from_str_currency_pgas() {
+        assert_eq!(
+            NearGas::from_str("10 pgas").unwrap(),
+            NearGas::from_gas(10_000_000_000_000_000) // 17 digits
+        );
+        assert_eq!(
+            NearGas::from_str("10.055PETAGAS").unwrap(),
+            NearGas::from_gas(10_055_000_000_000_000) // 17 digits
+        )
+    }
+    #[test]
     fn near_gas_from_str_currency_tgas() {
         assert_eq!(
             NearGas::from_str("10 tgas").unwrap(),
@@ -169,6 +181,13 @@ mod test {
         );
     }
 
+    #[test]
+    fn near_gas_from_str_f64_pgas() {
+        assert_eq!(
+            NearGas::from_str("0.000001 pgas").unwrap(),
+            NearGas::from_gas(1_000_000_000) // 10 digits
+        )
+    }
     #[test]
     fn near_gas_from_str_f64_tgas() {
         assert_eq!(
