@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.6](https://github.com/near/near-gas-rs/compare/v0.3.5...v0.3.6) - 2026-05-06
+
+### Added
+
+- arbitrary feature ([#33](https://github.com/near/near-gas-rs/pull/33))
+
 ## [0.3.5](https://github.com/near/near-gas-rs/compare/v0.3.4...v0.3.5) - 2026-04-07
 
 ### Added
