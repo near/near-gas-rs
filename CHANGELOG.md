@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.7](https://github.com/near/near-gas-rs/compare/v0.3.6...v0.3.7) - 2026-08-31
+
+### Fixed
+
+- reject '+' sign in gas amount decimal parsing ([#38](https://github.com/near/near-gas-rs/pull/38))
+
+### Other
+
+- maintenance and update tokens to fix ci ([#36](https://github.com/near/near-gas-rs/pull/36))
+
 ## [0.3.6](https://github.com/near/near-gas-rs/compare/v0.3.5...v0.3.6) - 2026-05-06
 
 ### Added
