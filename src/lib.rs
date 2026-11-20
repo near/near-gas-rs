@@ -59,9 +59,14 @@ impl NearGas {
     ///
     /// assert_eq!(tera_gas.as_gas(), 1_000_000_000_000_000);
     /// ```
-    pub const fn from_pgas(mut inner: u64) -> Self {
-        inner *= ONE_PETA_GAS;
-        Self { inner }
+    ///
+    /// # Panics
+    ///
+    /// Panics if the amount in gas does not fit in a `u64`.
+    pub const fn from_pgas(inner: u64) -> Self {
+        Self {
+            inner: whole_units_to_gas(inner, ONE_PETA_GAS),
+        }
     }
 
     /// Creates a new `NearGas` from the specified number of whole tera Gas.
@@ -74,9 +79,14 @@ impl NearGas {
     ///
     /// assert_eq!(tera_gas.as_gas(), 5 * 1_000_000_000_000);
     /// ```
-    pub const fn from_tgas(mut inner: u64) -> Self {
-        inner *= ONE_TERA_GAS;
-        Self { inner }
+    ///
+    /// # Panics
+    ///
+    /// Panics if the amount in gas does not fit in a `u64`.
+    pub const fn from_tgas(inner: u64) -> Self {
+        Self {
+            inner: whole_units_to_gas(inner, ONE_TERA_GAS),
+        }
     }
 
     /// Creates a new `NearGas` from the specified number of whole giga Gas.
@@ -89,9 +99,14 @@ impl NearGas {
     ///
     /// assert_eq!(giga_gas.as_gas(), 5 * 1_000_000_000);
     /// ```
-    pub const fn from_ggas(mut inner: u64) -> Self {
-        inner *= ONE_GIGA_GAS;
-        Self { inner }
+    ///
+    /// # Panics
+    ///
+    /// Panics if the amount in gas does not fit in a `u64`.
+    pub const fn from_ggas(inner: u64) -> Self {
+        Self {
+            inner: whole_units_to_gas(inner, ONE_GIGA_GAS),
+        }
     }
 
     /// Creates a new `NearGas` from the specified number of whole Gas.
@@ -286,6 +301,15 @@ impl NearGas {
     }
 }
 
+/// Converts an amount in whole units to gas, panicking on overflow in every
+/// build profile instead of wrapping when overflow checks are off.
+const fn whole_units_to_gas(amount: u64, unit: u64) -> u64 {
+    match amount.checked_mul(unit) {
+        Some(gas) => gas,
+        None => panic!("NearGas amount overflows u64 gas"),
+    }
+}
+
 #[cfg(test)]
 mod test {
     use crate::NearGas;
@@ -366,5 +390,31 @@ mod test {
         let another_gas = 20;
         assert_eq!(gas.saturating_div(rhs), NearGas::from_gas(5));
         assert_eq!(gas.saturating_div(another_gas), NearGas::from_gas(0));
+    }
+
+    #[test]
+    fn whole_unit_constructors_accept_the_largest_amount_that_fits() {
+        assert_eq!(
+            NearGas::from_tgas(u64::MAX / 10u64.pow(12)).as_gas(),
+            u64::MAX / 10u64.pow(12) * 10u64.pow(12)
+        );
+    }
+
+    #[test]
+    #[should_panic(expected = "overflow")]
+    fn from_pgas_panics_on_overflow() {
+        NearGas::from_pgas(std::hint::black_box(u64::MAX / 10u64.pow(15) + 1));
+    }
+
+    #[test]
+    #[should_panic(expected = "overflow")]
+    fn from_tgas_panics_on_overflow() {
+        NearGas::from_tgas(std::hint::black_box(u64::MAX / 10u64.pow(12) + 1));
+    }
+
+    #[test]
+    #[should_panic(expected = "overflow")]
+    fn from_ggas_panics_on_overflow() {
+        NearGas::from_ggas(std::hint::black_box(u64::MAX / 10u64.pow(9) + 1));
     }
 }
