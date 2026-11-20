@@ -3,9 +3,11 @@ use crate::{NearGas, NearGasError, ONE_GIGA_GAS, ONE_PETA_GAS, ONE_TERA_GAS};
 impl std::str::FromStr for NearGas {
     type Err = NearGasError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let uppercase_s = s.trim().to_ascii_uppercase();
+        let trimmed = s.trim();
+        let uppercase_s = trimmed.to_ascii_uppercase();
         let (value, unit) = uppercase_s.split_at(
-            s.find(|c: char| c.is_ascii_alphabetic())
+            trimmed
+                .find(|c: char| c.is_ascii_alphabetic())
                 .ok_or_else(|| NearGasError::IncorrectUnit(s.to_owned()))?,
         );
         let unit_precision = match unit {
@@ -26,6 +28,15 @@ mod test {
     use std::str::FromStr;
 
     use crate::{DecimalNumberParsingError, NearGas, NearGasError};
+
+    #[test]
+    fn test_from_str_leading_whitespace() {
+        assert_eq!(NearGas::from_str(" 5 TGas").unwrap(), NearGas::from_tgas(5));
+        assert_eq!(
+            NearGas::from_str("  1.5 TGas").unwrap(),
+            NearGas::from_ggas(1500)
+        );
+    }
 
     #[test]
     fn doubledot() {
